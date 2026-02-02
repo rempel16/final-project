@@ -1,0 +1,14 @@
+# common
+.DS_Store
+.env
+.env.*.local
+*.log
+
+# node
+node_modules/
+dist/
+build/
+coverage/
+
+# misc
+.vscode/
