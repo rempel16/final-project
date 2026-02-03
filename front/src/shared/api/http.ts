@@ -1,0 +1,20 @@
+import axios from 'axios';
+import { tokenStorage } from '../lib/storage';
+
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
+
+export const http = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+http.interceptors.request.use((config) => {
+  const token = tokenStorage.get();
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+http.interceptors.response.use(
+  (res) => res,
+  (err) => Promise.reject(err)
+);
