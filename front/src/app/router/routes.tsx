@@ -1,7 +1,8 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { Navigate, createBrowserRouter } from "react-router-dom";
 
 import { LoginPage } from '../../pages/auth/LoginPage';
 import { SignupPage } from '../../pages/auth/SignupPage';
+import { ResetPage } from '../../pages/auth/ResetPage';
 
 import { MainPage } from '../../pages/main/MainPage';
 import { ExplorePage } from '../../pages/explore/ExplorePage';
@@ -12,15 +13,18 @@ import { EditProfilePage } from '../../pages/profile/EditProfilePage';
 import { MessagesPage } from '../../pages/messages/MessagesPage';
 
 import { ProtectedLayout } from '../../widgets/layout/ProtectedLayout';
+import { RouteFallback } from "./RouteFallback";
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/signup', element: <SignupPage /> },
+  { path: '/reset', element: <ResetPage /> },
 
   {
     element: <ProtectedLayout />,
     children: [
-      { path: '/', element: <MainPage /> },
+      { index: true, element: <MainPage /> },
+      { path: "/home", element: <Navigate to="/" replace /> },
       { path: '/explore', element: <ExplorePage /> },
       { path: '/search', element: <SearchPage /> },
       { path: '/create', element: <CreatePostPage /> },
@@ -29,4 +33,6 @@ export const router = createBrowserRouter([
       { path: '/messages', element: <MessagesPage /> },
     ],
   },
+
+  { path: "*", element: <RouteFallback /> },
 ]);
