@@ -1,0 +1,7 @@
+@use "../../../../styles/tokens" as t;
+
+.paper {
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-card;
+}
+

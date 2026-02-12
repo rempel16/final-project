@@ -1,0 +1,33 @@
+@use "../../../styles/tokens" as t;
+@use "../../../styles/mixins" as m;
+
+.root {
+  @include m.centerColumn(t.$space-3);
+  min-height: 240px;
+  text-align: center;
+}
+
+.card {
+  @include m.card;
+  padding: t.$space-6;
+  width: 100%;
+  max-width: 520px;
+}
+
+.title {
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
+  color: t.$color-text;
+}
+
+.description {
+  font-size: 14px;
+  line-height: 18px;
+  color: t.$color-muted;
+}
+
+.actions {
+  margin-top: t.$space-3;
+}
+

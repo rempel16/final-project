@@ -1,0 +1,48 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.layoutInner {
+  width: 100%;
+  max-width: 935px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.phonesWrap {
+  display: none;
+  flex-shrink: 0;
+}
+
+.phonesImage {
+  width: 380px;
+  height: auto;
+  display: block;
+}
+
+.formColumn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    padding: 48px 0;
+  }
+
+  .layoutInner {
+    gap: 48px;
+  }
+
+  .phonesWrap {
+    display: block;
+  }
+}
+

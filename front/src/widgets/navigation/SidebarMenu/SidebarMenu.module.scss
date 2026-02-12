@@ -1,0 +1,91 @@
+.desktopRoot {
+  flex-shrink: 0;
+  width: 240px;
+  display: none;
+}
+
+.desktopPaper {
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  border-right: 1px solid #dbdbdb;
+  border-radius: 0;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #ffffff;
+}
+
+.mobileDrawerPaper {
+  width: 240px;
+  border-right: 1px solid #dbdbdb;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  padding: 0 12px 8px;
+}
+
+.brand {
+  font-weight: 700;
+}
+
+.navList {
+  padding: 0 8px;
+  flex: 1;
+}
+
+.navItem {
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.navItem.Mui-selected,
+.navItem.Mui-selected:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.navItem.Mui-selected :global(.MuiTypography-root) {
+  font-weight: 700;
+}
+
+.navItemText {
+  font-weight: 600;
+}
+
+.navIcon {
+  min-width: 40px;
+}
+
+.navIconImg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.profileWrap {
+  margin-top: auto;
+}
+
+.profileList {
+  padding: 8px;
+}
+
+.profileAvatar {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+@media (min-width: 900px) {
+  .desktopRoot {
+    display: block;
+  }
+}
+

@@ -1,0 +1,16 @@
+@use "./tokens" as t;
+
+@mixin centerColumn($gap: t.$space-2) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $gap;
+}
+
+@mixin card {
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-card;
+  background: t.$color-bg;
+}
+

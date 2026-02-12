@@ -1,0 +1,10 @@
+.root {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.send {
+  flex-shrink: 0;
+}
+
