@@ -1,12 +1,13 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../providers/AuthProvider';
+import type { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../providers/authContext";
 
 type Props = {
-  children: JSX.Element;
+  children: ReactNode;
 };
 
 export const AuthGuard = ({ children }: Props) => {
   const { isAuthed } = useAuth();
   if (!isAuthed) return <Navigate to="/signup" replace />;
-  return children;
+  return <>{children}</>;
 };
