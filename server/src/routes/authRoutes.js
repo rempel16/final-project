@@ -38,9 +38,16 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+  const identifier = req.body?.identifier || req.body?.email;
+  const { password } = req.body;
 
-  const user = await User.findOne({ email }).select("+passwordHash");
+  if (!identifier || !password) {
+    return res.status(400).json({ message: "Identifier and password are required" });
+  }
+
+  const user = await User.findOne({
+    $or: [{ email: identifier }, { username: identifier }],
+  }).select("+passwordHash");
   if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
   const ok = await bcrypt.compare(password, user.passwordHash);
@@ -56,6 +63,14 @@ router.post("/login", async (req, res) => {
       name: user.name,
     },
   });
+});
+
+router.post("/reset", async (req, res) => {
+  const { identifier } = req.body;
+  if (!identifier) return res.status(400).json({ message: "Identifier is required" });
+
+  await User.findOne({ $or: [{ email: identifier }, { username: identifier }] });
+  return res.status(200).json({ message: "Reset link sent" });
 });
 
 module.exports = router;
