@@ -14,3 +14,4 @@ coverage/
 # misc
 .vscode/package-lock.json
 *.crdownload
+*.zip
