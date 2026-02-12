@@ -1,0 +1,53 @@
+@use "../../styles/tokens" as t;
+
+.root {
+  min-height: 100vh;
+  display: flex;
+}
+
+.searchSpacer {
+  flex-shrink: 0;
+  width: 360px;
+  display: none;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileTopBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid t.$color-border;
+  background: t.$color-bg;
+}
+
+.mobileTitle {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+}
+
+@media (min-width: t.$bp-md) {
+  .searchSpacer {
+    display: block;
+  }
+
+  .mobileTopBar {
+    display: none;
+  }
+
+  .content {
+    padding: 24px;
+  }
+}
