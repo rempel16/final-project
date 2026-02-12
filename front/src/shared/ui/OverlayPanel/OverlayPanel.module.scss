@@ -1,0 +1,80 @@
+:global(html.overlay-scroll-lock),
+:global(body.overlay-scroll-lock) {
+  overflow: hidden;
+}
+
+.root {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1300;
+
+  pointer-events: none;
+}
+
+.open {
+  pointer-events: auto;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+
+  border: 0;
+  padding: 0;
+  margin: 0;
+
+  background: rgba(0, 0, 0, 0.65);
+
+  opacity: 0;
+  transition: opacity 220ms ease;
+  cursor: pointer;
+}
+
+.panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+
+  width: 397px;
+
+  background: var(--mui-palette-background-paper);
+  border-right: 1px solid var(--mui-palette-divider);
+
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+
+  box-shadow: 10px 0 24px rgba(0, 0, 0, 0.18);
+
+  transform: translateX(-100%);
+  transition: transform 220ms ease;
+}
+
+.open .backdrop {
+  opacity: 1;
+}
+
+.open .panel {
+  transform: translateX(0);
+}
+
+.closed {
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .root {
+    left: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .panel {
+    transition: none;
+  }
+}
+

@@ -1,0 +1,19 @@
+.ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 2px;
+  background: conic-gradient(
+    from 90deg,
+    var(--mui-palette-primary-main),
+    var(--mui-palette-primary-light),
+    var(--mui-palette-secondary-main),
+    var(--mui-palette-primary-main)
+  );
+}
+
+.avatar {
+  background: var(--mui-palette-background-paper);
+  color: var(--mui-palette-text-primary);
+}

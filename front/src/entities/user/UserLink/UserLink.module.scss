@@ -1,0 +1,94 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  min-width: 0;
+
+  text-decoration: none;
+  color: var(--mui-palette-text-primary);
+
+  border-radius: 8px;
+}
+
+.link:hover .username {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--mui-palette-primary-main);
+  outline-offset: 2px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--mui-palette-text-secondary);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.followBtn {
+  margin-left: auto;
+  text-transform: none;
+  padding: 4px 8px;
+  min-width: auto;
+
+  color: var(--mui-palette-primary-main);
+}
+
+.followBtn:hover {
+  /* без primary-dark, как ты и просила */
+  filter: brightness(0.92);
+}
+
+.profileHeader {
+  /* подключим, когда увидим ProfilePage */
+  .avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .username {
+    font-size: 16px;
+    line-height: 20px;
+  }
+}

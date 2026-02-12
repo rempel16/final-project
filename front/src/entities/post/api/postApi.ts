@@ -1,4 +1,4 @@
-import { getMeId } from "../../../shared/lib/me";
+import { getMeId } from "@/shared/lib/me";
 import { mockPosts } from "../mock/posts.mock";
 import type { Post, UserPreview } from "../model/types";
 

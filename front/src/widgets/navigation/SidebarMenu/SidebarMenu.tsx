@@ -1,8 +1,16 @@
-import { Avatar, Divider, List, ListItemButton, ListItemIcon, ListItemText, Paper, Typography } from "@mui/material";
+import {
+  Avatar,
+  Divider,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Paper,
+} from "@mui/material";
 import Drawer from "@mui/material/Drawer";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { NAV_ITEMS, PROFILE_NAV_ITEM } from "../../../shared/config/navigation";
+import { NAV_ITEMS, PROFILE_NAV_ITEM } from "@/shared/config/navigation";
 import styles from "./SidebarMenu.module.scss";
 
 type Props = {
@@ -20,19 +28,27 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
   const navigate = useNavigate();
 
   const activeTo = getActiveTo(location.pathname);
-  const profileSelected = PROFILE_NAV_ITEM.isActive?.(location.pathname) ?? false;
+  const profileSelected =
+    PROFILE_NAV_ITEM.isActive?.(location.pathname) ?? false;
 
   const handleNavigate = (to: string) => {
-    navigate(to);
+    if (to === "/create") {
+     navigate(to, { state: { backgroundLocation: location } });
+    } else {
+      navigate(to);
+    }
     onMobileClose();
   };
 
   const navContent = (
     <div className={styles.content}>
       <div className={styles.header}>
-        <Typography variant="h6" className={styles.brand}>
-          ICHgram
-        </Typography>
+        <img
+          className={styles.logo}
+          src="/logo.png"
+          alt="ICHgram"
+          draggable={false}
+        />
       </div>
       <Divider />
 

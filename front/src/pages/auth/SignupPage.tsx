@@ -10,8 +10,8 @@ import {
   Typography,
 } from "@mui/material";
 
-import { useAuth } from "../../app/providers/authContext";
-import { userApi } from "../../entities/user/api";
+import { useAuth } from "@/app/providers/authContext";
+import { userApi } from "@/entities/user/api";
 import { AuthLayout } from "./AuthLayout";
 import styles from "./auth.module.scss";
 

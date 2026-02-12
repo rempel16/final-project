@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { Box, Button, Link, Paper, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Link,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 
-import { userApi } from "../../entities/user/api";
+import { userApi } from "@/entities/user/api";
 import { AuthLayout } from "./AuthLayout";
 import styles from "./auth.module.scss";
 
@@ -42,15 +50,24 @@ export const ResetPage = () => {
     <AuthLayout>
       <Stack spacing={2} className={styles.formStack}>
         <Paper variant="outlined" className={styles.card}>
-          <Box component="img" src="/logo.png" alt="Logo" className={styles.logo} />
+          <Box
+            component="img"
+            src="/logo.png"
+            alt="Logo"
+            className={styles.logo}
+          />
 
           <Typography className={styles.title}>Trouble logging in?</Typography>
           <Typography className={styles.description}>
-            Enter your email or username and we&apos;ll send you a link to get back
-            into your account.
+            Enter your email or username and we&apos;ll send you a link to get
+            back into your account.
           </Typography>
 
-          <Box component="form" onSubmit={handleSubmit} className={styles.formWrap}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            className={styles.formWrap}
+          >
             <Stack spacing={1.5}>
               <TextField
                 placeholder="Email or username"

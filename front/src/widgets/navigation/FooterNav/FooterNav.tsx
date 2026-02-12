@@ -1,7 +1,7 @@
 import { Link, Typography } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
-import { NAV_ITEMS } from "../../../shared/config/navigation";
+import { NAV_ITEMS } from "@/shared/config/navigation";
 import styles from "./FooterNav.module.scss";
 
 const getActiveTo = (pathname: string) => {
@@ -28,11 +28,17 @@ export const FooterNav = () => {
               key={item.to}
               component={RouterLink}
               to={item.to}
+              state={
+                item.to === "/create"
+                  ? { backgroundLocation: location }
+                  : undefined
+              }
               underline="none"
               className={[
                 styles.link,
                 activeTo === item.to ? styles.linkActive : "",
               ].join(" ")}
+              aria-current={activeTo === item.to ? "page" : undefined}
             >
               {item.label}
             </Link>

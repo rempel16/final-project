@@ -21,7 +21,7 @@ import { likeApi } from "../../../like/api/likeApi";
 import { followApi } from "../../../follow/api/followApi";
 import { CommentItem } from "../../../comment/ui/CommentItem/CommentItem";
 import { AddCommentForm } from "../../../../features/comments/AddCommentForm/AddCommentForm";
-import { PageState } from "../../../../shared/ui/PageState/PageState";
+import { PageState } from "@/shared/ui/PageState/PageState";
 import { PostModalMenu } from "./PostModalMenu";
 import styles from "./PostModal.module.scss";
 
@@ -83,7 +83,7 @@ export const PostModal = ({ postId, onClose }: Props) => {
   const visibleText =
     post && !editingPost && !expandedText && isLongText
       ? `${post.text.slice(0, PREVIEW_TEXT_LIMIT).trimEnd()}…`
-      : post?.text ?? "";
+      : (post?.text ?? "");
 
   const canViewMoreComments = Boolean(
     post && post.commentsCount > comments.length,
@@ -191,10 +191,7 @@ export const PostModal = ({ postId, onClose }: Props) => {
 
     const previous = post;
     const nextLiked = !post.likedByMe;
-    const nextLikesCount = Math.max(
-      0,
-      post.likesCount + (nextLiked ? 1 : -1),
-    );
+    const nextLikesCount = Math.max(0, post.likesCount + (nextLiked ? 1 : -1));
     setPost({ ...post, likedByMe: nextLiked, likesCount: nextLikesCount });
 
     try {
@@ -262,7 +259,10 @@ export const PostModal = ({ postId, onClose }: Props) => {
   };
 
   const handleGoToPost = () => {
-    navigate({ pathname: "/", search: `?postId=${encodeURIComponent(postId)}` }, { replace: true });
+    navigate(
+      { pathname: "/", search: `?postId=${encodeURIComponent(postId)}` },
+      { replace: true },
+    );
   };
 
   const handleEditFromMenu = () => {
@@ -354,7 +354,10 @@ export const PostModal = ({ postId, onClose }: Props) => {
                     className={styles.author}
                     onClick={() => navigate(`/profile/${post.author.id}`)}
                   >
-                    <Avatar src={post.author.avatarUrl ?? undefined} className={styles.avatar}>
+                    <Avatar
+                      src={post.author.avatarUrl ?? undefined}
+                      className={styles.avatar}
+                    >
                       {initials}
                     </Avatar>
                     <Typography className={styles.username}>
@@ -427,7 +430,9 @@ export const PostModal = ({ postId, onClose }: Props) => {
                     </>
                   ) : (
                     <>
-                      <Typography className={styles.text}>{visibleText}</Typography>
+                      <Typography className={styles.text}>
+                        {visibleText}
+                      </Typography>
                       {isLongText && !expandedText ? (
                         <button
                           type="button"
@@ -441,7 +446,9 @@ export const PostModal = ({ postId, onClose }: Props) => {
                   )}
                 </div>
 
-                <Typography className={styles.date}>{createdAtLabel}</Typography>
+                <Typography className={styles.date}>
+                  {createdAtLabel}
+                </Typography>
 
                 <div className={styles.likesRow}>
                   {post.likesCount > 0 ? (
@@ -465,11 +472,15 @@ export const PostModal = ({ postId, onClose }: Props) => {
                 </div>
 
                 {likeError ? (
-                  <Typography className={styles.inlineError}>{likeError}</Typography>
+                  <Typography className={styles.inlineError}>
+                    {likeError}
+                  </Typography>
                 ) : null}
 
                 <div className={styles.commentsSection}>
-                  <Typography className={styles.sectionTitle}>Comments</Typography>
+                  <Typography className={styles.sectionTitle}>
+                    Comments
+                  </Typography>
 
                   {commentsLoading ? (
                     <div className={styles.commentsState}>

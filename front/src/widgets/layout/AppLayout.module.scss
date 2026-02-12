@@ -1,8 +1,8 @@
-@use "../../styles/tokens" as t;
-
 .root {
   min-height: 100vh;
   display: flex;
+  background: var(--mui-palette-background-default);
+  color: var(--mui-palette-text-primary);
 }
 
 .searchSpacer {
@@ -22,15 +22,17 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid t.$color-border;
-  background: t.$color-bg;
+
+  padding: 16px 16px;
+  border-bottom: 1px solid var(--mui-palette-divider);
+  background: var(--mui-palette-background-paper);
 }
 
-.mobileTitle {
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 18px;
+.mobileLogo {
+  height: 70px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .content {
@@ -38,7 +40,7 @@
   padding: 16px;
 }
 
-@media (min-width: t.$bp-md) {
+@media (min-width: 900px) {
   .searchSpacer {
     display: block;
   }

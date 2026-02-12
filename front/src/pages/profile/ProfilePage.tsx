@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Avatar, Box, Button, Container, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
-import type { Post } from "../../entities/post/model/types";
-import { postApi } from "../../entities/post/api/postApi";
-import { followApi } from "../../entities/follow/api/followApi";
-import { userApi, type UserProfile } from "../../entities/user/api";
+import type { Post } from "@/entities/post/model/types";
+import { postApi } from "@/entities/post/api/postApi";
+import { followApi } from "@/entities/follow/api/followApi";
+import { userApi, type UserProfile } from "@/entities/user/api";
 import { usePostModal } from "../../features/postModal/model/usePostModal";
-import { getMeId } from "../../shared/lib/me";
-import { PageState } from "../../shared/ui/PageState/PageState";
+import { getMeId } from "@/shared/lib/me";
+import { PageState } from "@/shared/ui/PageState/PageState";
 import styles from "./ProfilePage.module.scss";
 
 const getErrorMessage = (err: unknown) =>
@@ -206,7 +206,9 @@ export const ProfilePage = () => {
                       className={styles.postThumbImg}
                     />
                   ) : (
-                    <span className={styles.postThumbPlaceholder}>No image</span>
+                    <span className={styles.postThumbPlaceholder}>
+                      No image
+                    </span>
                   )}
                 </button>
               ))}

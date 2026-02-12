@@ -10,8 +10,8 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { userApi } from "../../entities/user/api";
-import type { UserPreview } from "../../entities/post/types";
+import { userApi } from "@/entities/user/api";
+import type { UserPreview } from "@/entities/post/types";
 import styles from "./SearchPage.module.scss";
 
 export const SearchPage = () => {

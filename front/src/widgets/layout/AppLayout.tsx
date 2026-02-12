@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
-import { IconButton, Typography } from "@mui/material";
+import { IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { FooterNav } from "../navigation/FooterNav/FooterNav";
 import { SidebarMenu } from "../navigation/SidebarMenu/SidebarMenu";
-import { SearchPanel } from "../search/SearchPanel/SearchPanel";
-import { PostModal } from "../../entities/post/ui/PostModal/PostModal";
+import { SearchPanel } from "../search/SearchPanel";
+import { PostModal } from "@/entities/post/ui/PostModal/PostModal";
 import { usePostModal } from "../../features/postModal/model/usePostModal";
 import styles from "./AppLayout.module.scss";
 
@@ -41,7 +41,12 @@ export const AppLayout = ({ children }: Props) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography className={styles.mobileTitle}>FINAL</Typography>
+          <img
+            src="/logo.png"
+            alt="ICHgram"
+            className={styles.mobileLogo}
+            draggable={false}
+          />
         </div>
 
         <div className={styles.content}>{children}</div>

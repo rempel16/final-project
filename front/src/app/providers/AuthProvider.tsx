@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { tokenStorage } from "../../shared/lib/storage";
+import { tokenStorage } from "@/shared/lib/storage";
 import { AuthContext, type AuthContextValue } from "./authContext";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {

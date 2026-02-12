@@ -8,18 +8,22 @@
   height: 100vh;
   position: sticky;
   top: 0;
-  border-right: 1px solid #dbdbdb;
+
+  border-right: 1px solid var(--mui-palette-divider);
   border-radius: 0;
+
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #ffffff;
+
+  background: var(--mui-palette-background-paper);
 }
 
 .mobileDrawerPaper {
   width: 240px;
-  border-right: 1px solid #dbdbdb;
+  border-right: 1px solid var(--mui-palette-divider);
+  background: var(--mui-palette-background-paper);
 }
 
 .content {
@@ -32,31 +36,44 @@
   padding: 0 12px 8px;
 }
 
-.brand {
-  font-weight: 700;
+.headerLogoWrap {
+  padding-left: 13px;
+  padding-top: 12px;
+}
+.logo {
+  width: 97px;
+  height: 55px;
+  display: block;
+  object-fit: contain;
 }
 
 .navList {
   padding: 0 8px;
-  flex: 1;
+
 }
 
 .navItem {
   border-radius: 8px;
   margin-bottom: 4px;
+  background: transparent !important;
 }
 
-.navItem.Mui-selected,
-.navItem.Mui-selected:hover {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.navItem.Mui-selected :global(.MuiTypography-root) {
-  font-weight: 700;
+.navItem:hover {
+  background: transparent !important;
 }
 
 .navItemText {
   font-weight: 600;
+  color: var(--mui-palette-text-primary);
+}
+
+.navItem:hover :global(.MuiListItemText-primary) {
+  color: var(--app-primary-hover, var(--mui-palette-primary-main)) !important;
+}
+
+.navItem:global(.Mui-selected) :global(.MuiListItemText-primary) {
+  color: #000 !important;
+  font-weight: 700 !important;
 }
 
 .navIcon {
@@ -69,8 +86,18 @@
   display: block;
 }
 
+.navItem:hover .navIconImg {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(85%) saturate(3446%)
+    hue-rotate(252deg) brightness(92%) contrast(104%);
+}
+
+.navItem:global(.Mui-selected) .navIconImg {
+  filter: grayscale(1) brightness(0);
+}
+
+
 .profileWrap {
-  margin-top: auto;
+  margin-top: 12px; 
 }
 
 .profileList {
@@ -88,4 +115,3 @@
     display: block;
   }
 }
-

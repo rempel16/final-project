@@ -2,27 +2,21 @@
 
 .root {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.main {
-  min-width: 0;
-  flex: 1;
-}
-
-.username {
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 16px;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .text {
+  padding-left: 40px;
   white-space: pre-wrap;
   word-break: break-word;
   font-size: 13px;
   line-height: 18px;
+  color: var(--mui-palette-text-primary);
+}
+
+.textarea {
+  margin-left: 40px;
 }
 
 .textarea :global(textarea) {
@@ -35,4 +29,3 @@
   gap: 6px;
   flex-shrink: 0;
 }
-

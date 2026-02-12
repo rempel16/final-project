@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
 
-import type { Post } from "../../entities/post/model/types";
-import { postApi } from "../../entities/post/api/postApi";
-import { PostCard } from "../../entities/post/ui/PostCard/PostCard";
+import type { Post } from "@/entities/post/model/types";
+import { postApi } from "@/entities/post/api/postApi";
+import { PostCard } from "@/entities/post/ui/PostCard/PostCard";
 import { usePostModal } from "../../features/postModal/model/usePostModal";
 import styles from "./MainPage.module.scss";
 
@@ -51,9 +51,7 @@ export const MainPage = () => {
         setHasMore(loadedCount < total);
       } catch (err: unknown) {
         setIsError(true);
-        setErrorMessage(
-          (err as { message?: string })?.message ?? String(err),
-        );
+        setErrorMessage((err as { message?: string })?.message ?? String(err));
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +60,6 @@ export const MainPage = () => {
   );
 
   useEffect(() => {
-    // initial load
     loadPage(1);
     setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,50 +100,65 @@ export const MainPage = () => {
 
   return (
     <Box className={styles.root}>
-      <Typography className={styles.title}>Home</Typography>
+      <Box className={styles.container}>
+        <div className={styles.titleRow}>
+          <img src="/icon/Home.svg" alt="Home" className={styles.titleIcon} />
+          <Typography className={styles.title}>Home</Typography>
+        </div>
 
-      {isLoading && items.length === 0 ? (
-        <Box className={styles.loading}>
-          <CircularProgress />
-        </Box>
-      ) : isError && items.length === 0 ? (
-        <Box className={styles.loading}>
-          <Typography color="error">
-            {errorMessage || "Error loading posts"}
-          </Typography>
-          <Button onClick={handleRetry}>Retry</Button>
-        </Box>
-      ) : items.length === 0 ? (
-        <Typography className={styles.empty}>Пока нет постов</Typography>
-      ) : (
-        <>
-          <Box className={styles.feed}>
-            {items.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onClick={() => open(post.id)}
-              />
-            ))}
+        {isLoading && items.length === 0 ? (
+          <Box className={styles.loading}>
+            <CircularProgress />
           </Box>
-
-          {isLoading && (
-            <Box className={styles.loadingMore}>
-              <CircularProgress size={20} />
+        ) : isError && items.length === 0 ? (
+          <Box className={styles.loading}>
+            <Typography className={styles.errorText}>
+              {errorMessage || "Error loading posts"}
+            </Typography>
+            <Button onClick={handleRetry} className={styles.retryBtn}>
+              Retry
+            </Button>
+          </Box>
+        ) : items.length === 0 ? (
+          <Typography className={styles.empty}>Пока нет постов</Typography>
+        ) : (
+          <>
+            <Box className={styles.feed}>
+              {items.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onClick={() => open(post.id)}
+                />
+              ))}
             </Box>
-          )}
 
-          {/* sentinel for infinite scroll */}
-          <div ref={sentinelRef} />
+            {isLoading && (
+              <Box className={styles.loadingMore}>
+                <CircularProgress size={20} />
+              </Box>
+            )}
 
-          {/* end of list message */}
-          {!hasMore && items.length > 0 && (
-            <Box className={styles.endBlock}>
-              <Typography>Вы просмотрели все последние обновления</Typography>
-            </Box>
-          )}
-        </>
-      )}
+            <div ref={sentinelRef} className={styles.sentinel} />
+
+            {!hasMore && items.length > 0 && (
+              <Box className={styles.endBlock}>
+                <img
+                  src="/icon/illo-confirm-refresh-light.png"
+                  alt="seen all the updates"
+                  className={styles.endIllustration}
+                />
+                <Typography className={styles.endTitle}>
+                  You've seen all the updates
+                </Typography>
+                <Typography className={styles.endSub}>
+                  You have viewed all new publications
+                </Typography>
+              </Box>
+            )}
+          </>
+        )}
+      </Box>
     </Box>
   );
 };

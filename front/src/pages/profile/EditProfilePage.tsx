@@ -1,6 +1,6 @@
 import { Container, Typography } from "@mui/material";
 
-import { PageState } from "../../shared/ui/PageState/PageState";
+import { PageState } from "@/shared/ui/PageState/PageState";
 import styles from "./EditProfilePage.module.scss";
 
 export const EditProfilePage = () => {

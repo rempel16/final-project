@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
-import { Avatar, Box, Card, Typography } from "@mui/material";
+import { useState } from "react";
+import { Box, Card, Typography } from "@mui/material";
 
 import type { Post } from "../../model/types";
+import { UserLink } from "../../../user/UserLink/UserLink";
 import styles from "./PostCard.module.scss";
 
 type Props = {
@@ -11,10 +12,6 @@ type Props = {
 
 export const PostCard = ({ post, onClick }: Props) => {
   const [imageError, setImageError] = useState(false);
-
-  const initials = useMemo(() => {
-    return post.author.username.slice(0, 1).toUpperCase();
-  }, [post.author.username]);
 
   return (
     <Card
@@ -29,15 +26,7 @@ export const PostCard = ({ post, onClick }: Props) => {
       tabIndex={onClick ? 0 : undefined}
     >
       <Box className={styles.header}>
-        <Avatar
-          src={post.author.avatarUrl ?? undefined}
-          className={styles.avatar}
-        >
-          {initials}
-        </Avatar>
-        <Typography className={styles.username}>
-          {post.author.username}
-        </Typography>
+        <UserLink variant="compact" user={post.author} />
       </Box>
 
       <Box className={styles.imageWrap}>

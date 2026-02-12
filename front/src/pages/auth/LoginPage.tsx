@@ -10,10 +10,15 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useAuth } from "../../app/providers/authContext";
-import { userApi } from "../../entities/user/api";
+import { useAuth } from "@/app/providers/authContext";
+import { userApi } from "@/entities/user/api";
 import { AuthLayout } from "./AuthLayout";
 import styles from "./auth.module.scss";
+
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -21,6 +26,7 @@ export const LoginPage = () => {
 
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{
     emailOrUsername?: string;
@@ -32,7 +38,8 @@ export const LoginPage = () => {
     e.preventDefault();
 
     const nextErrors: typeof errors = {};
-    if (!emailOrUsername.trim()) nextErrors.emailOrUsername = "Введите email или username";
+    if (!emailOrUsername.trim())
+      nextErrors.emailOrUsername = "Введите email или username";
     if (!password.trim()) nextErrors.password = "Введите пароль";
 
     setErrors(nextErrors);
@@ -59,10 +66,7 @@ export const LoginPage = () => {
   return (
     <AuthLayout>
       <Stack spacing={2} className={styles.formStack}>
-        <Paper
-          variant="outlined"
-          className={styles.card}
-        >
+        <Paper variant="outlined" className={styles.card}>
           <Box
             component="img"
             src="/logo.png"
@@ -70,7 +74,11 @@ export const LoginPage = () => {
             className={styles.logo}
           />
 
-          <Box component="form" onSubmit={handleSubmit} className={styles.formWrap}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            className={styles.formWrap}
+          >
             <Stack spacing={1.5}>
               <TextField
                 placeholder="Email or username"
@@ -83,13 +91,32 @@ export const LoginPage = () => {
               />
               <TextField
                 placeholder="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 fullWidth
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 error={Boolean(errors.password || errors.server)}
                 helperText={errors.password ?? errors.server ?? " "}
                 className={styles.input}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                        onClick={() => setShowPassword((v) => !v)}
+                        edge="end"
+                      >
+                        {showPassword ? (
+                          <VisibilityOffOutlinedIcon />
+                        ) : (
+                          <VisibilityOutlinedIcon />
+                        )}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               <Button

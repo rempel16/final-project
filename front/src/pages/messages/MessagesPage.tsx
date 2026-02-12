@@ -15,11 +15,7 @@ import {
   Stack,
   Divider,
 } from "@mui/material";
-import {
-  messageApi,
-  type Thread,
-  type Message,
-} from "../../shared/api/messageApi";
+import { messageApi, type Thread, type Message } from "@/shared/api/messageApi";
 import styles from "./MessagesPage.module.scss";
 
 export const MessagesPage = () => {
@@ -38,8 +34,8 @@ export const MessagesPage = () => {
         const data = await messageApi.getThreads();
         setThreads(data);
         setError(null);
-        if (data.length > 0 && !selectedThreadId) {
-          setSelectedThreadId(data[0].id);
+        if (data.length > 0) {
+          setSelectedThreadId((prev) => prev ?? data[0].id);
         }
       } catch (err) {
         console.error("Failed to load threads:", err);
@@ -129,10 +125,7 @@ export const MessagesPage = () => {
     <Container maxWidth="lg" className={styles.container}>
       <div className={styles.layout}>
         {/* Threads List */}
-        <Paper
-          elevation={0}
-          className={styles.threads}
-        >
+        <Paper elevation={0} className={styles.threads}>
           <List className={styles.threadsList}>
             {threads.length === 0 ? (
               <ListItem>
@@ -177,15 +170,13 @@ export const MessagesPage = () => {
               <div className={styles.chatBody}>
                 <Stack spacing={1}>
                   {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={styles.messageRow}
-                    >
-                      <Paper
-                        className={styles.messageBubble}
-                      >
+                    <div key={msg.id} className={styles.messageRow}>
+                      <Paper className={styles.messageBubble}>
                         <Typography variant="body2">{msg.text}</Typography>
-                        <Typography variant="caption" className={styles.messageTime}>
+                        <Typography
+                          variant="caption"
+                          className={styles.messageTime}
+                        >
                           {new Date(msg.createdAt).toLocaleTimeString()}
                         </Typography>
                       </Paper>

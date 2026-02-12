@@ -1,5 +1,5 @@
-import { http } from "../../shared/api/http";
-import { API } from "../../shared/api/endpoints";
+import { http } from "@/shared/api/http";
+import { API } from "@/shared/api/endpoints";
 import type { UserPreview } from "../post/types";
 import { mockUsers } from "./mock/users.mock";
 
@@ -27,12 +27,16 @@ export const userApi = {
   }) => http.post<AuthResponse>(API.auth.signup, payload).then((r) => r.data),
 
   login: (payload: { email: string; password: string }) =>
-    http.post<AuthResponse>(API.auth.login, payload).then((r) => r.data),
+    http
+      .post<AuthResponse>(API.auth.login, {
+        identifier: payload.email,
+        password: payload.password,
+      })
+      .then((r) => r.data),
 
   reset: (payload: { identifier: string }) =>
     http.post<{ message: string }>(API.auth.reset, payload).then((r) => r.data),
 
-  // Mock searchUsers: query by username or name (case-insensitive, contains)
   searchUsers: async (query: string): Promise<UserPreview[]> => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -53,7 +57,6 @@ export const userApi = {
     });
   },
 
-  // Mock getProfile: minimal data for ProfilePage
   getProfile: async (userId: string): Promise<UserProfile | null> => {
     await sleep(250);
     if (userId === "error") throw new Error("Profile API error");

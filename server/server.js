@@ -1,11 +1,21 @@
 require("dotenv").config();
 
 const express = require("express");
+const cors = require("cors");
 const { connectDB } = require("./src/config/db");
 const authRoutes = require("./src/routes/authRoutes");
 const healthRoutes = require("./src/routes/healthRoutes");
 
 const app = express();
+
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    credentials: true,
+  }),
+);
+app.options(/.*/, cors());
+
 app.use(express.json());
 
 app.get("/health", (_, res) => res.json({ ok: true }));
