@@ -1,71 +1,110 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Avatar,
+  Button,
+  CircularProgress,
   Container,
+  Divider,
   List,
   ListItem,
-  ListItemButton,
   ListItemAvatar,
+  ListItemButton,
   ListItemText,
-  Avatar,
-  TextField,
-  Button,
   Paper,
-  Typography,
-  CircularProgress,
   Stack,
-  Divider,
+  TextField,
+  Typography,
 } from "@mui/material";
-import { messageApi, type Thread, type Message } from "@/shared/api/messageApi";
+import { useSearchParams } from "react-router-dom";
+
+import { messageApi, type Message, type Thread } from "@/shared/api/messageApi";
 import styles from "./MessagesPage.module.scss";
 
+const getErrorMessage = (err: unknown) =>
+  (err as { message?: string })?.message ?? "Something went wrong";
+
 export const MessagesPage = () => {
+  const [searchParams] = useSearchParams();
+  const requestedUserId = useMemo(
+    () => searchParams.get("userId"),
+    [searchParams],
+  );
+
   const [threads, setThreads] = useState<Thread[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [threadsLoading, setThreadsLoading] = useState(true);
+  const [threadsError, setThreadsError] = useState<string | null>(null);
+
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
+
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState<string | null>(null);
+
   const [messageText, setMessageText] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const loadThreads = async () => {
-      try {
-        const data = await messageApi.getThreads();
-        setThreads(data);
-        setError(null);
-        if (data.length > 0) {
-          setSelectedThreadId((prev) => prev ?? data[0].id);
-        }
-      } catch (err) {
-        console.error("Failed to load threads:", err);
-        setError("Failed to load conversations.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadThreads = async () => {
+    setThreadsLoading(true);
+    setThreadsError(null);
 
-    loadThreads();
+    try {
+      const data = await messageApi.getThreads();
+      setThreads(Array.isArray(data) ? data : []);
+      if ((Array.isArray(data) ? data : []).length > 0) {
+        setSelectedThreadId((prev) => prev ?? data[0].id);
+      } else {
+        setSelectedThreadId(null);
+      }
+    } catch (err) {
+      // ВАЖНО: не валим всю страницу. Просто показываем ошибку в списке диалогов.
+      console.error("Failed to load threads:", err);
+      setThreads([]);
+      setSelectedThreadId(null);
+      setThreadsError("Failed to load conversations.");
+    } finally {
+      setThreadsLoading(false);
+    }
+  };
+
+  const loadMessages = async (threadId: string) => {
+    setMessagesLoading(true);
+    setMessagesError(null);
+
+    try {
+      const data = await messageApi.getMessages(threadId);
+      setMessages(data?.messages ?? []);
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+      setMessages([]);
+      setMessagesError("Failed to load conversation messages.");
+    } finally {
+      setMessagesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!selectedThreadId) return;
+    if (!selectedThreadId) {
+      setMessages([]);
+      setMessagesError(null);
+      setMessagesLoading(false);
+      return;
+    }
 
-    const loadMessages = async () => {
-      try {
-        const data = await messageApi.getMessages(selectedThreadId);
-        setMessages(data.messages);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to load messages:", err);
-        setError("Failed to load conversation messages.");
-      }
-    };
+    void loadMessages(selectedThreadId);
 
-    loadMessages();
+    const interval = window.setInterval(() => {
+      void loadMessages(selectedThreadId);
+    }, 3000);
 
-    const interval = setInterval(loadMessages, 3000);
-    return () => clearInterval(interval);
+    return () => window.clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedThreadId]);
 
   useEffect(() => {
@@ -79,45 +118,19 @@ export const MessagesPage = () => {
     try {
       const newMessage = await messageApi.sendMessage(
         selectedThreadId,
-        messageText,
+        messageText.trim(),
       );
       setMessages((prev) => [...prev, newMessage]);
       setMessageText("");
-      setError(null);
+      setMessagesError(null);
     } catch (err) {
       console.error("Failed to send message:", err);
-      setError("Failed to send message.");
+      setMessagesError("Failed to send message.");
+      window.alert(getErrorMessage(err));
     } finally {
       setSendingMessage(false);
     }
   };
-
-  if (loading) {
-    return (
-      <Container>
-        <div className={styles.centerWrap}>
-          <CircularProgress />
-        </div>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container>
-        <div className={styles.centerWrap}>
-          <Paper elevation={0} className={styles.errorCard}>
-            <Typography variant="h6" gutterBottom>
-              {error}
-            </Typography>
-            <Typography color="text.secondary">
-              Unable to load messages.
-            </Typography>
-          </Paper>
-        </div>
-      </Container>
-    );
-  }
 
   const selectedThread = threads.find((t) => t.id === selectedThreadId);
 
@@ -126,35 +139,74 @@ export const MessagesPage = () => {
       <div className={styles.layout}>
         {/* Threads List */}
         <Paper elevation={0} className={styles.threads}>
-          <List className={styles.threadsList}>
-            {threads.length === 0 ? (
-              <ListItem>
-                <Typography color="text.secondary">No messages yet</Typography>
-              </ListItem>
-            ) : (
-              threads.map((thread) => (
-                <ListItemButton
-                  key={thread.id}
-                  selected={selectedThreadId === thread.id}
-                  onClick={() => setSelectedThreadId(thread.id)}
-                >
-                  <ListItemAvatar>
-                    <Avatar
-                      src={thread.participant.avatar}
-                      alt={thread.participant.username}
+          <div className={styles.threadsHeader}>
+            <Typography variant="h6">Messages</Typography>
+            <div className={styles.threadsHeaderRight}>
+              <Button
+                type="button"
+                variant="text"
+                onClick={loadThreads}
+                disabled={threadsLoading}
+                className={styles.refreshBtn}
+              >
+                {threadsLoading ? "Loading…" : "Refresh"}
+              </Button>
+            </div>
+          </div>
+
+          {threadsLoading ? (
+            <div className={styles.centerWrap}>
+              <CircularProgress />
+            </div>
+          ) : threadsError ? (
+            <div className={styles.centerWrap}>
+              <Paper elevation={0} className={styles.errorCard}>
+                <Typography variant="h6" gutterBottom>
+                  {threadsError}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mb: 2 }}>
+                  Unable to load conversations.
+                </Typography>
+                <Button type="button" variant="contained" onClick={loadThreads}>
+                  Retry
+                </Button>
+              </Paper>
+            </div>
+          ) : (
+            <List className={styles.threadsList}>
+              {threads.length === 0 ? (
+                <ListItem>
+                  <Typography color="text.secondary">
+                    {requestedUserId
+                      ? "No conversations yet. (You came here from a profile, but there is no backend logic to create a new thread yet.)"
+                      : "No messages yet"}
+                  </Typography>
+                </ListItem>
+              ) : (
+                threads.map((thread) => (
+                  <ListItemButton
+                    key={thread.id}
+                    selected={selectedThreadId === thread.id}
+                    onClick={() => setSelectedThreadId(thread.id)}
+                  >
+                    <ListItemAvatar>
+                      <Avatar
+                        src={thread.participant.avatar}
+                        alt={thread.participant.username}
+                      />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        thread.participant.name || thread.participant.username
+                      }
+                      secondary={thread.lastMessage}
+                      secondaryTypographyProps={{ noWrap: true }}
                     />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      thread.participant.name || thread.participant.username
-                    }
-                    secondary={thread.lastMessage}
-                    secondaryTypographyProps={{ noWrap: true }}
-                  />
-                </ListItemButton>
-              ))
-            )}
-          </List>
+                  </ListItemButton>
+                ))
+              )}
+            </List>
+          )}
         </Paper>
 
         {/* Chat */}
@@ -167,25 +219,49 @@ export const MessagesPage = () => {
                     selectedThread.participant.username}
                 </Typography>
               </div>
+
               <div className={styles.chatBody}>
-                <Stack spacing={1}>
-                  {messages.map((msg) => (
-                    <div key={msg.id} className={styles.messageRow}>
-                      <Paper className={styles.messageBubble}>
-                        <Typography variant="body2">{msg.text}</Typography>
-                        <Typography
-                          variant="caption"
-                          className={styles.messageTime}
-                        >
-                          {new Date(msg.createdAt).toLocaleTimeString()}
-                        </Typography>
-                      </Paper>
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </Stack>
+                {messagesLoading ? (
+                  <div className={styles.centerWrap}>
+                    <CircularProgress />
+                  </div>
+                ) : messagesError ? (
+                  <div className={styles.centerWrap}>
+                    <Paper elevation={0} className={styles.errorCard}>
+                      <Typography variant="h6" gutterBottom>
+                        {messagesError}
+                      </Typography>
+                      <Button
+                        type="button"
+                        variant="contained"
+                        onClick={() => void loadMessages(selectedThread.id)}
+                      >
+                        Retry
+                      </Button>
+                    </Paper>
+                  </div>
+                ) : (
+                  <Stack spacing={1}>
+                    {messages.map((msg) => (
+                      <div key={msg.id} className={styles.messageRow}>
+                        <Paper className={styles.messageBubble}>
+                          <Typography variant="body2">{msg.text}</Typography>
+                          <Typography
+                            variant="caption"
+                            className={styles.messageTime}
+                          >
+                            {new Date(msg.createdAt).toLocaleTimeString()}
+                          </Typography>
+                        </Paper>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </Stack>
+                )}
               </div>
+
               <Divider />
+
               <div className={styles.composer}>
                 <TextField
                   fullWidth
@@ -193,7 +269,7 @@ export const MessagesPage = () => {
                   placeholder="Type a message..."
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       handleSendMessage();
@@ -201,6 +277,7 @@ export const MessagesPage = () => {
                   }}
                   disabled={sendingMessage}
                 />
+
                 <Button
                   variant="contained"
                   onClick={handleSendMessage}

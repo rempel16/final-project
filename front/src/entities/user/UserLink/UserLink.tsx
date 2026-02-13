@@ -35,7 +35,9 @@ export const UserLink = ({
   subtitle,
   showFollowButton,
   actions,
-  to,
+
+  to, // ← фикс
+
   className,
   onFollowClick,
   followLabel = "Follow",

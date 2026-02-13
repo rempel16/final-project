@@ -117,6 +117,11 @@ export const ProfilePage = () => {
     }
   };
 
+  const handleMessage = () => {
+    if (!userId || isMyProfile) return;
+    navigate(`/messages?userId=${encodeURIComponent(userId)}`);
+  };
+
   const postsCount = posts.length;
 
   return (
@@ -144,9 +149,11 @@ export const ProfilePage = () => {
                 {profile.username.slice(0, 1).toUpperCase()}
               </Avatar>
             </div>
+
             <div className={styles.info}>
               <div className={styles.topRow}>
                 <span className={styles.username}>{profile.username}</span>
+
                 <div className={styles.actions}>
                   {isMyProfile ? (
                     <button
@@ -166,11 +173,12 @@ export const ProfilePage = () => {
                       >
                         {isFollowing ? "Following" : "Follow"}
                       </button>
+
                       <button
                         className={`${styles.button} ${styles.buttonSecondary}`}
                         type="button"
-                        // TODO: add message logic
-                        disabled={false}
+                        onClick={handleMessage}
+                        disabled={!userId}
                       >
                         Message
                       </button>
@@ -178,6 +186,7 @@ export const ProfilePage = () => {
                   )}
                 </div>
               </div>
+
               <div className={styles.stats}>
                 <span>
                   <span className={styles.statValue}>{postsCount}</span>
@@ -185,6 +194,7 @@ export const ProfilePage = () => {
                 </span>
                 {/* TODO: add followers/following if needed */}
               </div>
+
               {profile.name && (
                 <div className={styles.name}>{profile.name}</div>
               )}

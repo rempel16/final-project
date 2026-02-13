@@ -1,6 +1,3 @@
-// Моки для чатов и сообщений (макет)
-// Типы рядом с моками, без рефакторинга API
-
 export interface MockUser {
   _id: string;
   username: string;
@@ -23,7 +20,7 @@ export interface MockChat {
   messages?: MockMessage[];
 }
 
-const users: MockUser[] = [
+export const users: MockUser[] = [
   { _id: "me", username: "me", avatar: "/avatars/me.jpg" },
   { _id: "sashaa", username: "sashaa", avatar: "/avatars/sashaa.jpg" },
   { _id: "ashaa", username: "ashaa", avatar: "/avatars/ashaa.jpg" },
@@ -145,3 +142,6 @@ export const mockChats: MockChat[] = [
     },
   },
 ];
+
+// alias для тех, кто любит другое имя
+export const chatsMock = mockChats;
