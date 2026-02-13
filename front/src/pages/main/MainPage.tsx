@@ -62,8 +62,7 @@ export const MainPage = () => {
   useEffect(() => {
     loadPage(1);
     setPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadPage]);
 
   useEffect(() => {
     return postApi.subscribe((feed) => {

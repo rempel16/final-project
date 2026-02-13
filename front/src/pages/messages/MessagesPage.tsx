@@ -51,14 +51,14 @@ export const MessagesPage = () => {
 
     try {
       const data = await messageApi.getThreads();
-      setThreads(Array.isArray(data) ? data : []);
-      if ((Array.isArray(data) ? data : []).length > 0) {
-        setSelectedThreadId((prev) => prev ?? data[0].id);
+      const next = Array.isArray(data) ? data : [];
+      setThreads(next);
+      if (next.length > 0) {
+        setSelectedThreadId((prev) => prev ?? next[0].id);
       } else {
         setSelectedThreadId(null);
       }
     } catch (err) {
-      // ВАЖНО: не валим всю страницу. Просто показываем ошибку в списке диалогов.
       console.error("Failed to load threads:", err);
       setThreads([]);
       setSelectedThreadId(null);
@@ -74,7 +74,7 @@ export const MessagesPage = () => {
 
     try {
       const data = await messageApi.getMessages(threadId);
-      setMessages(data?.messages ?? []);
+      setMessages(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load messages:", err);
       setMessages([]);
@@ -86,7 +86,6 @@ export const MessagesPage = () => {
 
   useEffect(() => {
     void loadThreads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -104,7 +103,6 @@ export const MessagesPage = () => {
     }, 3000);
 
     return () => window.clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedThreadId]);
 
   useEffect(() => {
@@ -116,10 +114,9 @@ export const MessagesPage = () => {
 
     setSendingMessage(true);
     try {
-      const newMessage = await messageApi.sendMessage(
-        selectedThreadId,
-        messageText.trim(),
-      );
+      const newMessage = await messageApi.sendMessage(selectedThreadId, {
+        text: messageText.trim(),
+      });
       setMessages((prev) => [...prev, newMessage]);
       setMessageText("");
       setMessagesError(null);
@@ -137,7 +134,6 @@ export const MessagesPage = () => {
   return (
     <Container maxWidth="lg" className={styles.container}>
       <div className={styles.layout}>
-        {/* Threads List */}
         <Paper elevation={0} className={styles.threads}>
           <div className={styles.threadsHeader}>
             <Typography variant="h6">Messages</Typography>
@@ -209,7 +205,6 @@ export const MessagesPage = () => {
           )}
         </Paper>
 
-        {/* Chat */}
         <Paper elevation={0} className={styles.chat}>
           {selectedThread ? (
             <>

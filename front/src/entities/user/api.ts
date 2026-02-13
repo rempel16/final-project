@@ -1,7 +1,6 @@
 import { http } from "@/shared/api/http";
 import { API } from "@/shared/api/endpoints";
 import type { UserPreview } from "../post/types";
-import { mockUsers } from "./mock/users.mock";
 
 export type UserProfile = {
   id: string;
@@ -16,7 +15,10 @@ export type AuthResponse = {
   user: { id: string; email: string; username: string; name?: string };
 };
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const is404 = (err: unknown) => {
+  const e = err as { response?: { status?: number } };
+  return e?.response?.status === 404;
+};
 
 export const userApi = {
   signup: (payload: {
@@ -37,39 +39,30 @@ export const userApi = {
   reset: (payload: { identifier: string }) =>
     http.post<{ message: string }>(API.auth.reset, payload).then((r) => r.data),
 
-  searchUsers: async (query: string): Promise<UserPreview[]> => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (query === "error") {
-          reject(new Error("API error"));
-          return;
-        }
-        const q = query.trim().toLowerCase();
-        if (!q) return resolve([]);
-        resolve(
-          mockUsers.filter(
-            (u) =>
-              u.username.toLowerCase().includes(q) ||
-              (u.name && u.name.toLowerCase().includes(q)),
-          ),
-        );
-      }, 300);
-    });
-  },
+  getMe: () => http.get<UserProfile>(API.users.me).then((r) => r.data),
 
-  getProfile: async (userId: string): Promise<UserProfile | null> => {
-    await sleep(250);
-    if (userId === "error") throw new Error("Profile API error");
+  updateMe: (payload: {
+    name?: string;
+    bio?: string;
+    avatarUrl?: string | null;
+  }) => http.patch<UserProfile>(API.users.me, payload).then((r) => r.data),
 
-    const found = mockUsers.find((u) => u.id === userId);
-    if (!found) return null;
+  searchUsers: (query: string): Promise<UserPreview[]> =>
+    http
+      .get<UserPreview[]>(API.users.search, { params: { q: query } })
+      .then((r) => r.data),
 
-    return {
-      id: found.id,
-      username: found.username,
-      name: found.name,
-      avatarUrl: found.avatarUrl ?? null,
-      bio: found.bio ?? null,
-    };
-  },
+  getProfile: (userId: string): Promise<UserProfile | null> =>
+    http
+      .get<UserProfile>(API.users.byId(userId))
+      .then((r) => r.data)
+      .catch((err: unknown) => {
+        if (is404(err)) return null;
+        throw err;
+      }),
+
+  followToggle: (userId: string) =>
+    http
+      .post<{ following: boolean }>(API.users.follow(userId))
+      .then((r) => r.data),
 };

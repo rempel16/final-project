@@ -2,12 +2,11 @@ import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/app/providers/authContext";
 
-type Props = {
-  children: ReactNode;
-};
+export const AuthGuard = ({ children }: { children: ReactNode }) => {
+  const { isAuthed, ready } = useAuth();
 
-export const AuthGuard = ({ children }: Props) => {
-  const { isAuthed } = useAuth();
-  if (!isAuthed) return <Navigate to="/signup" replace />;
+  if (!ready) return null;
+  if (!isAuthed) return <Navigate to="/login" replace />;
+
   return <>{children}</>;
 };
