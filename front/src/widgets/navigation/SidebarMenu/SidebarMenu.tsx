@@ -33,7 +33,7 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
 
   const handleNavigate = (to: string) => {
     if (to === "/create") {
-     navigate(to, { state: { backgroundLocation: location } });
+      navigate(to, { state: { backgroundLocation: location } });
     } else {
       navigate(to);
     }
@@ -93,6 +93,36 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
             />
           </ListItemButton>
         </List>
+      </div>
+
+      <div className={styles.logout}>
+        <button
+          type="button"
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userId");
+            window.location.replace("/login");
+          }}
+          className={styles.logoutItem}
+        >
+          <svg
+            className={styles.navIcon}
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M16 17L21 12M21 12L16 7M21 12H9M13 21H5C4.44772 21 4 20.5523 4 20V4C4 3.44772 4.44772 3 5 3H13"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className={styles.navItemText}>Log out</span>
+        </button>
       </div>
     </div>
   );

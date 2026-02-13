@@ -1,7 +1,37 @@
-@use "../../../../styles/tokens" as t;
-
 .paper {
-  border: 1px solid t.$color-border;
-  border-radius: t.$radius-card;
+  border: 1px solid var(--mui-palette-divider);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 190px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
+.list {
+  padding: 6px;
+}
+
+.item {
+  border-radius: 10px;
+}
+
+.item:hover {
+  background: var(--mui-palette-action-hover);
+}
+
+.item :global(.MuiTypography-root) {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.icon {
+  min-width: 36px;
+  color: var(--mui-palette-text-secondary);
+}
+
+.danger :global(.MuiTypography-root) {
+  color: var(--mui-palette-error-main);
+}
+
+.danger:hover {
+  background: rgba(255, 0, 0, 0.06);
+}

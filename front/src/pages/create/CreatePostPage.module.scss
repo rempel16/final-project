@@ -122,3 +122,33 @@
   color: var(--mui-palette-text-secondary);
   font-size: 12px;
 }
+
+/* ALIASES for TSX */
+
+.overlay { @extend .backdrop; }
+.modal { @extend .paper; }
+
+.header { @extend .titleRow; }
+.headerTitle { @extend .title; }
+
+.headerBtn { background: none; border: 0; cursor: pointer; }
+.headerBtnPrimary { @extend .shareBtn; }
+.headerBtnDisabled { @extend .shareBtn; opacity: 0.35; cursor: default; }
+
+.mediaCol { @extend .dropzone; }
+.uploadZone { @extend .dropzone; }
+
+.uploadIcon { @extend .dropIcon; }
+.uploadText { @extend .dropText; }
+.uploadHint { @extend .dropHint; }
+
+.detailsCol { @extend .right; }
+
+.userRow { @extend .authorRow; }
+.miniAvatar { @extend .authorAvatar; }
+.username { @extend .authorName; }
+
+.textarea { @extend .caption; }
+
+.footer { display: flex; align-items: center; justify-content: space-between; }
+.emojiBtn { background: none; border: 0; cursor: pointer; }

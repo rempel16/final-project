@@ -29,6 +29,7 @@ const tokens = {
 } as const;
 
 export const themeLight = createTheme({
+  cssVariables: true,
   palette: {
     mode: "light",
     primary: { main: tokens.primary },

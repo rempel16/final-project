@@ -1,8 +1,8 @@
-$color-bg: #ffffff;
-$color-text: #000000;
-$color-muted: #353935;
-$color-border: #dbdbdb;
-$color-link: #5727f5;
+$color-bg: var(--mui-palette-background-paper);
+$color-text: var(--mui-palette-text-primary);
+$color-muted: var(--mui-palette-text-secondary);
+$color-border: var(--mui-palette-divider);
+$color-link: var(--mui-palette-primary-main);
 
 $radius-card: 1px;
 $radius-input: 3px;
@@ -16,4 +16,3 @@ $space-6: 24px;
 
 // Match MUI default md breakpoint.
 $bp-md: 900px;
-

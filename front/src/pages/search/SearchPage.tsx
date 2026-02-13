@@ -8,6 +8,7 @@ import {
   Avatar,
   CircularProgress,
   Button,
+  useMediaQuery,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { userApi } from "@/entities/user/api";
@@ -15,12 +16,15 @@ import type { UserPreview } from "@/entities/post/types";
 import styles from "./SearchPage.module.scss";
 
 export const SearchPage = () => {
+  const isDesktop = useMediaQuery("(min-width:900px)");
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<UserPreview[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
+
   const debounceRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
@@ -29,7 +33,9 @@ export const SearchPage = () => {
     setTouched(true);
     setIsError(false);
     setErrorMessage(null);
+
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
+
     const value = e.target.value;
     debounceRef.current = window.setTimeout(() => {
       if (!value.trim()) {
@@ -37,6 +43,7 @@ export const SearchPage = () => {
         setIsLoading(false);
         return;
       }
+
       setIsLoading(true);
       userApi
         .searchUsers(value)
@@ -58,6 +65,7 @@ export const SearchPage = () => {
     setIsError(false);
     setErrorMessage(null);
     setIsLoading(true);
+
     userApi
       .searchUsers(query)
       .then((users) => {
@@ -74,8 +82,12 @@ export const SearchPage = () => {
   }, [query]);
 
   const handleUserClick = (id: string) => {
+    // мобильное поведение: переход на профиль
     navigate(`/profile/${id}`);
   };
+
+  // Десктоп: поиск рисуется SearchPanel-ом поверх. Эта страница не нужна.
+  if (isDesktop) return null;
 
   return (
     <Box className={styles.root}>
@@ -127,16 +139,15 @@ export const SearchPage = () => {
                 key={user.id}
                 className={styles.userRow}
                 onClick={() => handleUserClick(user.id)}
-                style={{ cursor: "pointer" }}
               >
                 <Avatar src={user.avatarUrl} className={styles.avatar} />
                 <Box className={styles.userInfo}>
                   <Typography className={styles.username}>
                     {user.username}
                   </Typography>
-                  {user.name && (
+                  {user.name ? (
                     <Typography className={styles.name}>{user.name}</Typography>
-                  )}
+                  ) : null}
                 </Box>
               </Box>
             ))}

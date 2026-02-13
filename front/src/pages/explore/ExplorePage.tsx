@@ -4,7 +4,6 @@ import { Box, CircularProgress, Container, Typography } from "@mui/material";
 import { postApi } from "@/entities/post/api/postApi";
 import type { Post } from "@/entities/post/model/types";
 import { usePostModal } from "@/features/postModal/model/usePostModal";
-import { PageState } from "@/shared/ui/PageState/PageState";
 import styles from "./ExplorePage.module.scss";
 
 export const ExplorePage = () => {
@@ -28,8 +27,7 @@ export const ExplorePage = () => {
         if (!alive) return;
         setErrorText((err as { message?: string })?.message ?? String(err));
       } finally {
-        if (!alive) return;
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     })();
 
@@ -48,13 +46,13 @@ export const ExplorePage = () => {
       <Typography className={styles.title}>Explore</Typography>
 
       {loading ? (
-        <Box className={styles.loading}>
+        <Box className={styles.loader}>
           <CircularProgress />
         </Box>
       ) : errorText ? (
-        <PageState kind="error" description={errorText} />
+        <div className={styles.error}>{errorText}</div>
       ) : isEmpty ? (
-        <PageState kind="empty" title="Nothing to explore yet" />
+        <div className={styles.empty}>Nothing to explore yet</div>
       ) : (
         <Box className={styles.grid}>
           {items.map((post) => (
@@ -71,6 +69,7 @@ export const ExplorePage = () => {
                 alt=""
                 loading="lazy"
               />
+              <span className={styles.overlay} />
             </button>
           ))}
         </Box>

@@ -40,7 +40,7 @@ export const UserLink = ({
   onFollowClick,
   followLabel = "Follow",
 }: Props) => {
-  const profileKey = user.username ?? user.id ?? "";
+  const profileKey = user.id ?? user.username ?? "";
   const href = to ?? `/profile/${profileKey}`;
 
   const initials = (

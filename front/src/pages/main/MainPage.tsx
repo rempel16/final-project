@@ -107,23 +107,21 @@ export const MainPage = () => {
         </div>
 
         {isLoading && items.length === 0 ? (
-          <Box className={styles.loading}>
+          <div className={styles.loader}>
             <CircularProgress />
-          </Box>
+          </div>
         ) : isError && items.length === 0 ? (
-          <Box className={styles.loading}>
-            <Typography className={styles.errorText}>
-              {errorMessage || "Error loading posts"}
-            </Typography>
+          <div className={styles.error}>
+            {errorMessage || "Error loading posts"}
             <Button onClick={handleRetry} className={styles.retryBtn}>
               Retry
             </Button>
-          </Box>
+          </div>
         ) : items.length === 0 ? (
-          <Typography className={styles.empty}>Пока нет постов</Typography>
+          <div className={styles.empty}>No posts yet</div>
         ) : (
           <>
-            <Box className={styles.feed}>
+            <div className={styles.feed}>
               {items.map((post) => (
                 <PostCard
                   key={post.id}
@@ -131,30 +129,30 @@ export const MainPage = () => {
                   onClick={() => open(post.id)}
                 />
               ))}
-            </Box>
+            </div>
 
             {isLoading && (
-              <Box className={styles.loadingMore}>
+              <div className={styles.loader}>
                 <CircularProgress size={20} />
-              </Box>
+              </div>
             )}
 
             <div ref={sentinelRef} className={styles.sentinel} />
 
             {!hasMore && items.length > 0 && (
-              <Box className={styles.endBlock}>
+              <div className={styles.endBlock}>
                 <img
                   src="/icon/illo-confirm-refresh-light.png"
                   alt="seen all the updates"
-                  className={styles.endIllustration}
+                  className={styles.endIcon}
                 />
-                <Typography className={styles.endTitle}>
+                <div className={styles.endTitle}>
                   You've seen all the updates
-                </Typography>
-                <Typography className={styles.endSub}>
+                </div>
+                <div className={styles.endSubtitle}>
                   You have viewed all new publications
-                </Typography>
-              </Box>
+                </div>
+              </div>
             )}
           </>
         )}

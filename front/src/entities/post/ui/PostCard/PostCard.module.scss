@@ -61,3 +61,43 @@
 .captionUser {
   font-weight: 600;
 }
+
+.media { @extend .imageWrap; }
+.placeholder { @extend .imagePlaceholder; }
+
+.body { @extend .meta; }
+
+.username { @extend .captionUser; } 
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  text-decoration: none;
+  color: inherit;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time {
+  color: var(--mui-palette-text-secondary);
+  font-size: 12px;
+}
+
+.more {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--mui-palette-text-secondary);
+}
+.more:hover {
+  text-decoration: underline;
+}

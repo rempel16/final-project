@@ -1,3 +1,24 @@
+.logout {
+  margin-top: auto;
+}
+
+.logoutItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: var(--mui-palette-text-primary);
+  background: none;
+  border: none;
+  width: 100%;
+  font: inherit;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.logoutItem:hover {
+  background: var(--mui-palette-action-hover);
+}
 .desktopRoot {
   flex-shrink: 0;
   width: 240px;
@@ -49,7 +70,6 @@
 
 .navList {
   padding: 0 8px;
-
 }
 
 .navItem {
@@ -95,9 +115,8 @@
   filter: grayscale(1) brightness(0);
 }
 
-
 .profileWrap {
-  margin-top: 12px; 
+  margin-top: 12px;
 }
 
 .profileList {

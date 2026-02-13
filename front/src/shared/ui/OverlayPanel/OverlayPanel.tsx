@@ -26,14 +26,19 @@ export const OverlayPanel = ({
 
   useEffect(() => {
     if (open) {
-      setMounted(true);
-      const raf = window.requestAnimationFrame(() => setVisible(true));
+      const raf = window.requestAnimationFrame(() => {
+        setMounted(true);
+        setVisible(true);
+      });
       return () => window.cancelAnimationFrame(raf);
     }
 
-    setVisible(false);
+    const raf = window.requestAnimationFrame(() => setVisible(false));
     const timer = window.setTimeout(() => setMounted(false), TRANSITION_MS);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timer);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -83,4 +88,3 @@ export const OverlayPanel = ({
     </div>
   );
 };
-

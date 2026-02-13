@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Avatar, Box, Button, Container, Typography } from "@mui/material";
+import { Avatar, Box, Container, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
 import type { Post } from "@/entities/post/model/types";
@@ -117,6 +117,8 @@ export const ProfilePage = () => {
     }
   };
 
+  const postsCount = posts.length;
+
   return (
     <Container className={styles.root}>
       {profileLoading ? (
@@ -134,48 +136,60 @@ export const ProfilePage = () => {
       ) : (
         <>
           <Box className={styles.header}>
-            <Avatar
-              src={profile.avatarUrl ?? undefined}
-              className={styles.avatar}
-            >
-              {profile.username.slice(0, 1).toUpperCase()}
-            </Avatar>
-
-            <Box className={styles.headerMain}>
-              <Box className={styles.usernameRow}>
-                <Typography className={styles.username}>
-                  {profile.username}
-                </Typography>
-
-                <Box className={styles.actions}>
+            <div className={styles.avatarWrap}>
+              <Avatar
+                src={profile.avatarUrl ?? undefined}
+                className={styles.avatar}
+              >
+                {profile.username.slice(0, 1).toUpperCase()}
+              </Avatar>
+            </div>
+            <div className={styles.info}>
+              <div className={styles.topRow}>
+                <span className={styles.username}>{profile.username}</span>
+                <div className={styles.actions}>
                   {isMyProfile ? (
-                    <Button
-                      size="small"
-                      variant="outlined"
+                    <button
+                      className={`${styles.button} ${styles.buttonSecondary}`}
+                      type="button"
                       onClick={() => navigate("/profile/edit")}
                     >
                       Edit profile
-                    </Button>
+                    </button>
                   ) : (
-                    <Button
-                      size="small"
-                      variant={isFollowing ? "outlined" : "contained"}
-                      onClick={handleToggleFollow}
-                      disabled={followLoading}
-                    >
-                      {isFollowing ? "Unfollow" : "Follow"}
-                    </Button>
+                    <>
+                      <button
+                        className={`${styles.button} ${styles.buttonPrimary}`}
+                        type="button"
+                        onClick={handleToggleFollow}
+                        disabled={followLoading}
+                      >
+                        {isFollowing ? "Following" : "Follow"}
+                      </button>
+                      <button
+                        className={`${styles.button} ${styles.buttonSecondary}`}
+                        type="button"
+                        // TODO: add message logic
+                        disabled={false}
+                      >
+                        Message
+                      </button>
+                    </>
                   )}
-                </Box>
-              </Box>
-
-              {profile.name ? (
-                <Typography className={styles.name}>{profile.name}</Typography>
-              ) : null}
-              {profile.bio ? (
-                <Typography className={styles.bio}>{profile.bio}</Typography>
-              ) : null}
-            </Box>
+                </div>
+              </div>
+              <div className={styles.stats}>
+                <span>
+                  <span className={styles.statValue}>{postsCount}</span>
+                  <span className={styles.statLabel}> posts</span>
+                </span>
+                {/* TODO: add followers/following if needed */}
+              </div>
+              {profile.name && (
+                <div className={styles.name}>{profile.name}</div>
+              )}
+              {profile.bio && <div className={styles.bio}>{profile.bio}</div>}
+            </div>
           </Box>
 
           <Typography className={styles.sectionTitle}>Posts</Typography>
@@ -198,12 +212,15 @@ export const ProfilePage = () => {
                   type="button"
                   className={styles.postThumb}
                   onClick={() => open(post.id)}
+                  aria-label={`Open post by ${post.author.username}`}
                 >
                   {post.imageUrl ? (
                     <img
                       src={post.imageUrl}
-                      alt={post.text}
+                      alt=""
                       className={styles.postThumbImg}
+                      loading="lazy"
+                      draggable={false}
                     />
                   ) : (
                     <span className={styles.postThumbPlaceholder}>

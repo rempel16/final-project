@@ -12,12 +12,6 @@ export type UserRowProps = {
   align?: "center" | "top";
 };
 
-const avatarPx = {
-  sm: 28,
-  md: 40,
-  lg: 72,
-} as const;
-
 export const UserRow: FC<UserRowProps> = ({
   avatarUrl,
   username,
@@ -29,8 +23,9 @@ export const UserRow: FC<UserRowProps> = ({
 }) => {
   return (
     <Box
-      className={`${styles.root} ${align === "top" ? styles.alignTop : ""}`}
-      style={{ ["--userrow-avatar" as any]: `${avatarPx[size]}px` }}
+      className={`${styles.root} ${styles[size]} ${
+        align === "top" ? styles.alignTop : ""
+      }`}
     >
       <button
         type="button"

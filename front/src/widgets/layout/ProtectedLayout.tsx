@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useOutlet } from "react-router-dom";
 import type { Location as RouterLocation } from "react-router-dom";
 
@@ -16,18 +16,21 @@ export const ProtectedLayout = () => {
   const isCreateModal =
     location.pathname === "/create" && Boolean(state?.backgroundLocation);
 
-  const lastNonModalOutletRef = useRef<React.ReactNode>(null);
+  const [backgroundOutlet, setBackgroundOutlet] =
+    useState<React.ReactNode>(outlet);
 
   useEffect(() => {
-    if (!isCreateModal) lastNonModalOutletRef.current = outlet;
+    if (isCreateModal) return;
+    const raf = window.requestAnimationFrame(() => setBackgroundOutlet(outlet));
+    return () => window.cancelAnimationFrame(raf);
   }, [isCreateModal, outlet]);
 
   return (
     <AuthGuard>
       <AppLayout>
-        {isCreateModal && lastNonModalOutletRef.current ? (
+        {isCreateModal ? (
           <>
-            {lastNonModalOutletRef.current}
+            {backgroundOutlet}
             {outlet}
           </>
         ) : (

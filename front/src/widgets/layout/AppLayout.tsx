@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
-import { IconButton } from "@mui/material";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { IconButton, useMediaQuery } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -20,8 +20,44 @@ export const AppLayout = ({ children }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const isDesktop = useMediaQuery("(min-width:900px)");
   const isSearchOpen = location.pathname.startsWith("/search");
+
   const { activePostId, close: closePostModal } = usePostModal();
+
+  // Запоминаем, где был пользователь ДО открытия поиска
+  const lastNonSearchPathRef = useRef<string>("/");
+  useEffect(() => {
+    if (!isSearchOpen) {
+      lastNonSearchPathRef.current = location.pathname + location.search;
+    }
+  }, [isSearchOpen, location.pathname, location.search]);
+
+  // На десктопе при открытом /search НЕ рендерим SearchPage,
+  // а оставляем "фон" (последнюю не-search страницу)
+  const [desktopBackground, setDesktopBackground] =
+    useState<ReactNode>(children);
+  useEffect(() => {
+    if (!isDesktop) return;
+    if (!isSearchOpen) {
+      const raf = window.requestAnimationFrame(() =>
+        setDesktopBackground(children),
+      );
+      return () => window.cancelAnimationFrame(raf);
+    }
+  }, [children, isDesktop, isSearchOpen]);
+
+  const mainContent = useMemo(() => {
+    if (isDesktop && isSearchOpen) return desktopBackground;
+    return children;
+  }, [children, desktopBackground, isDesktop, isSearchOpen]);
+
+  const handleSearchClose = () => {
+    const backTo = lastNonSearchPathRef.current || "/";
+    navigate(backTo);
+  };
+
+  const isDimmed = isDesktop && isSearchOpen;
 
   return (
     <div className={styles.root}>
@@ -30,8 +66,21 @@ export const AppLayout = ({ children }: Props) => {
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      {isSearchOpen ? <div className={styles.searchSpacer} /> : null}
-      <SearchPanel open={isSearchOpen} onClose={() => navigate("/")} />
+      {isDesktop && isSearchOpen ? (
+        <div className={styles.searchSpacer} />
+      ) : null}
+
+      {isDesktop ? (
+        <SearchPanel open={isSearchOpen} onClose={handleSearchClose} />
+      ) : null}
+
+      {isDimmed ? (
+        <div
+          className={styles.pageOverlay}
+          onClick={handleSearchClose}
+          aria-hidden="true"
+        />
+      ) : null}
 
       <main className={styles.main}>
         <div className={styles.mobileTopBar}>
@@ -41,6 +90,7 @@ export const AppLayout = ({ children }: Props) => {
           >
             <MenuIcon />
           </IconButton>
+
           <img
             src="/logo.png"
             alt="ICHgram"
@@ -49,7 +99,7 @@ export const AppLayout = ({ children }: Props) => {
           />
         </div>
 
-        <div className={styles.content}>{children}</div>
+        <div className={styles.content}>{mainContent}</div>
 
         <FooterNav />
       </main>

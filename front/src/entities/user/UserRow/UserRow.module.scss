@@ -6,6 +6,18 @@
   min-width: 0;
 }
 
+.sm {
+  --userrow-avatar: 28px;
+}
+
+.md {
+  --userrow-avatar: 40px;
+}
+
+.lg {
+  --userrow-avatar: 72px;
+}
+
 .alignTop {
   align-items: flex-start;
 }
