@@ -1,22 +1,27 @@
-# common
+# OS
 .DS_Store
+
+# env
 .env
 .env.*.local
+
+# logs
 *.log
 
-# node
+# deps
 node_modules/
+.pnpm-store/
+
+# builds
 dist/
 build/
 coverage/
-.pnpm-store/
 
-# misc
-.vscode/package-lock.json
+# editor
+.vscode/
+
+# archives / downloads
+*.zip
+*.tar
+*.tar.gz
 *.crdownload
-*.zip
-.vscode/
-node_modules/
-.vscode/
-*.zip
-.DS_Store
