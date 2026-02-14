@@ -41,7 +41,6 @@ export const postApi = {
   subscribe: (listener: (posts: Post[]) => void) => {
     listeners.add(listener);
     return () => {
-      listeners.delete(listener); // важно: cleanup должен возвращать void, не boolean
     };
   },
 

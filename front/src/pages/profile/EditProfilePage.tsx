@@ -31,7 +31,6 @@ const fileToDataUrl = (file: File) =>
 
 export const EditProfilePage = () => {
   const navigate = useNavigate();
-
   const meId = useMemo(() => getMeId(), []);
 
   const [loading, setLoading] = useState(true);
@@ -51,13 +50,11 @@ export const EditProfilePage = () => {
   useEffect(() => {
     let alive = true;
 
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    const load = async () => {
+      setLoading(true);
+      setError(null);
 
-        // 1) Пытаемся "me" (если API есть)
-        // 2) Фоллбэк: mock getProfile(meId)
+      try {
         const me = await userApi.getMe().catch(() => userApi.getProfile(meId));
         if (!alive) return;
 
@@ -74,11 +71,13 @@ export const EditProfilePage = () => {
       } catch (e) {
         if (!alive) return;
         setError((e as Error).message ?? "Failed to load profile");
+        setProfile(null);
       } finally {
-        if (!alive) return;
-        setLoading(false);
+        if (alive) setLoading(false);
       }
-    })();
+    };
+
+    void load();
 
     return () => {
       alive = false;
@@ -94,6 +93,7 @@ export const EditProfilePage = () => {
     try {
       const dataUrl = await fileToDataUrl(file);
       setAvatarUrl(dataUrl);
+      setError(null);
     } catch {
       setError("Failed to load image");
     } finally {
@@ -101,18 +101,18 @@ export const EditProfilePage = () => {
     }
   };
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault(); // ← ВОТ ЭТО РЕШАЕТ “пусто”
-    if (!profile) return;
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!profile || saving) return;
+
+    setSaving(true);
+    setError(null);
 
     try {
-      setSaving(true);
-      setError(null);
-
       await userApi.updateMe({
         name: name.trim(),
         bio: bio.trim(),
-        avatarUrl: avatarUrl,
+        avatarUrl,
       });
 
       close();
@@ -148,6 +148,7 @@ export const EditProfilePage = () => {
             component="form"
             onSubmit={onSubmit}
             autoComplete="off"
+            id="edit-profile-form"
           >
             <Stack
               direction="row"
@@ -174,7 +175,11 @@ export const EditProfilePage = () => {
               </Stack>
 
               <Box>
-                <Button variant="contained" onClick={handlePhotoClick}>
+                <Button
+                  variant="contained"
+                  onClick={handlePhotoClick}
+                  disabled={saving}
+                >
                   New photo
                 </Button>
                 <input
@@ -193,6 +198,8 @@ export const EditProfilePage = () => {
               onChange={(e) => setName(e.target.value)}
               inputProps={{ maxLength: NAME_MAX }}
               fullWidth
+              disabled={saving}
+              helperText={`${name.length} / ${NAME_MAX}`}
             />
 
             <TextField
@@ -203,6 +210,7 @@ export const EditProfilePage = () => {
               multiline
               minRows={4}
               fullWidth
+              disabled={saving}
               helperText={`${bio.length} / ${BIO_MAX}`}
             />
 
@@ -211,9 +219,6 @@ export const EditProfilePage = () => {
                 {error}
               </Typography>
             )}
-
-            {/* важно: кнопки в DialogActions, но submit должен быть внутри формы */}
-            <button type="submit" hidden />
           </Stack>
         )}
       </DialogContent>
@@ -224,10 +229,8 @@ export const EditProfilePage = () => {
         </Button>
         <Button
           variant="contained"
-          onClick={() => {
-            const form = document.querySelector("form");
-            form?.requestSubmit();
-          }}
+          type="submit"
+          form="edit-profile-form"
           disabled={loading || saving || !profile}
         >
           {saving ? "Saving..." : "Save"}

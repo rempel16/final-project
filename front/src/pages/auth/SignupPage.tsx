@@ -36,10 +36,10 @@ export const SignupPage = () => {
     e.preventDefault();
 
     const nextErrors: typeof errors = {};
-    if (!email.trim()) nextErrors.email = "Введите email";
-    if (!fullName.trim()) nextErrors.fullName = "Введите full name";
-    if (!username.trim()) nextErrors.username = "Введите username";
-    if (!password.trim()) nextErrors.password = "Введите пароль";
+    if (!email.trim()) nextErrors.email = "Enter email";
+    if (!fullName.trim()) nextErrors.fullName = "Enter full name";
+    if (!username.trim()) nextErrors.username = "Enter username";
+    if (!password.trim()) nextErrors.password = "Enter password";
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -59,7 +59,7 @@ export const SignupPage = () => {
         ?.status;
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Не удалось зарегистрироваться. Попробуйте ещё раз.";
+          ?.message ?? "Failed to sign up. Please try again.";
 
       if (status === 409) {
         setErrors({ username: "Username already taken" });

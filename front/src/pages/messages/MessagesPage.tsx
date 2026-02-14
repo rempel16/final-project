@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Avatar,
   Button,
@@ -61,7 +61,7 @@ export const MessagesPage = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const loadThreads = async () => {
+  const loadThreads = useCallback(async () => {
     setThreadsLoading(true);
     setThreadsError(null);
 
@@ -70,7 +70,6 @@ export const MessagesPage = () => {
       const next = Array.isArray(data) ? data : [];
       setThreads(next);
 
-      // пришли из профиля: /messages?userId=...
       if (requestedUserId) {
         const existing = next.find((t) => t.participant.id === requestedUserId);
 
@@ -79,7 +78,6 @@ export const MessagesPage = () => {
           return;
         }
 
-        // чата ещё нет → создаём
         const created = await messageApi.getOrCreateThread(requestedUserId);
 
         setThreads((prev) => {
@@ -91,7 +89,6 @@ export const MessagesPage = () => {
         return;
       }
 
-      // обычное поведение
       if (next.length > 0) {
         setSelectedThreadId((prev) => prev ?? next[0].id);
       } else {
@@ -105,9 +102,9 @@ export const MessagesPage = () => {
     } finally {
       setThreadsLoading(false);
     }
-  };
+  }, [requestedUserId]);
 
-  const loadMessages = async (threadId: string) => {
+  const loadMessages = useCallback(async (threadId: string) => {
     setMessagesLoading(true);
     setMessagesError(null);
 
@@ -122,12 +119,11 @@ export const MessagesPage = () => {
     } finally {
       setMessagesLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadThreads();
-    // важно: реагировать на изменение query (когда переходишь по Message на другого юзера)
-  }, [requestedUserId]);
+  }, [loadThreads]);
 
   useEffect(() => {
     if (!selectedThreadId) {
@@ -144,13 +140,13 @@ export const MessagesPage = () => {
     }, 3000);
 
     return () => window.clearInterval(interval);
-  }, [selectedThreadId]);
+  }, [selectedThreadId, loadMessages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!messageText.trim() || !selectedThreadId) return;
 
     setSendingMessage(true);
@@ -163,7 +159,7 @@ export const MessagesPage = () => {
       setMessages((prev) => mergeUniqueById(prev, [newMessage]));
       setMessageText("");
       setMessagesError(null);
-      // поднимем чат вверх (косметика, но приятно)
+
       setThreads((prev) => {
         const idx = prev.findIndex((t) => t.id === selectedThreadId);
         if (idx < 0) return prev;
@@ -177,9 +173,12 @@ export const MessagesPage = () => {
     } finally {
       setSendingMessage(false);
     }
-  };
+  }, [messageText, selectedThreadId]);
 
-  const selectedThread = threads.find((t) => t.id === selectedThreadId);
+  const selectedThread = useMemo(
+    () => threads.find((t) => t.id === selectedThreadId),
+    [threads, selectedThreadId],
+  );
 
   return (
     <Container maxWidth="lg" className={styles.container}>
@@ -191,7 +190,7 @@ export const MessagesPage = () => {
               <Button
                 type="button"
                 variant="text"
-                onClick={loadThreads}
+                onClick={() => void loadThreads()}
                 disabled={threadsLoading}
                 className={styles.refreshBtn}
               >
@@ -213,7 +212,11 @@ export const MessagesPage = () => {
                 <Typography color="text.secondary" sx={{ mb: 2 }}>
                   Unable to load conversations.
                 </Typography>
-                <Button type="button" variant="contained" onClick={loadThreads}>
+                <Button
+                  type="button"
+                  variant="contained"
+                  onClick={() => void loadThreads()}
+                >
                   Retry
                 </Button>
               </Paper>
@@ -334,7 +337,7 @@ export const MessagesPage = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      handleSendMessage();
+                      void handleSendMessage();
                     }
                   }}
                   disabled={sendingMessage}
@@ -342,7 +345,7 @@ export const MessagesPage = () => {
 
                 <Button
                   variant="contained"
-                  onClick={handleSendMessage}
+                  onClick={() => void handleSendMessage()}
                   disabled={!messageText.trim() || sendingMessage}
                 >
                   {sendingMessage ? <CircularProgress size={24} /> : "Send"}

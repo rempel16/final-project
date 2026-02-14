@@ -99,24 +99,24 @@ export const NotificationsDrawerContainer: React.FC<Props> = ({
     });
 
     const out: NotificationsDrawerSection[] = [];
-    if (unread.length) out.push({ label: "Новые", items: unread.map(mapItem) });
+    if (unread.length) out.push({ label: "New", items: unread.map(mapItem) });
     if (read.length)
-      out.push({ label: "Просмотренные", items: read.map(mapItem) });
+      out.push({ label: "Read", items: read.map(mapItem) });
 
     return out;
   }, [items, markRead]);
 
   const emptyText = loading
-    ? "Загрузка…"
+    ? "Loading…"
     : error
-      ? `Ошибка: ${error}`
-      : "Нет новых уведомлений";
+      ? `Error: ${error}`
+      : "No new notifications";
 
   return (
     <NotificationsDrawer
       open={open}
       onClose={onClose}
-      title="Уведомления"
+      title="Notifications"
       sections={sections}
       emptyText={emptyText}
     />

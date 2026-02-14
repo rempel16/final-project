@@ -1,18 +1,21 @@
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Avatar,
+  Badge,
   Divider,
+  Drawer,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Paper,
 } from "@mui/material";
-import { Drawer } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 
 import { userApi, type UserProfile } from "@/entities/user/api";
 import { NAV_ITEMS, PROFILE_NAV_ITEM } from "@/shared/config/navigation";
+import { notificationsStore } from "@/widgets/notification/model/notificationsStore";
+
 import styles from "./SidebarMenu.module.scss";
 
 type Props = {
@@ -30,6 +33,7 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
   const navigate = useNavigate();
 
   const [me, setMe] = useState<UserProfile | null>(null);
+  const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -48,7 +52,22 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
     };
   }, []);
 
-  const activeTo = getActiveTo(location.pathname);
+  useEffect(() => {
+    const check = () => {
+      const items = notificationsStore.getAll();
+      setHasUnread(items.some((n) => !n.isRead));
+    };
+
+    check();
+    window.addEventListener("ichgram:notifications", check);
+    return () => window.removeEventListener("ichgram:notifications", check);
+  }, []);
+
+  const activeTo = useMemo(
+    () => getActiveTo(location.pathname),
+    [location.pathname],
+  );
+
   const profileSelected =
     PROFILE_NAV_ITEM.isActive?.(location.pathname) ?? false;
 
@@ -77,6 +96,7 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
       <List className={styles.navList}>
         {NAV_ITEMS.map((item) => {
           const selected = activeTo === item.to;
+          const isNotifications = item.to === "/notifications";
 
           return (
             <ListItemButton
@@ -87,8 +107,28 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
               className={styles.navItem}
             >
               <ListItemIcon className={styles.navIcon}>
-                <img className={styles.navIconImg} src={item.iconSrc} alt="" />
+                {isNotifications ? (
+                  <Badge
+                    color="error"
+                    variant="dot"
+                    invisible={!hasUnread}
+                    overlap="circular"
+                  >
+                    <img
+                      className={styles.navIconImg}
+                      src={item.iconSrc}
+                      alt=""
+                    />
+                  </Badge>
+                ) : (
+                  <img
+                    className={styles.navIconImg}
+                    src={item.iconSrc}
+                    alt=""
+                  />
+                )}
               </ListItemIcon>
+
               <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{ className: styles.navItemText }}
@@ -112,6 +152,7 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
                 src={me?.avatarUrl ?? undefined}
               />
             </ListItemIcon>
+
             <ListItemText
               primary={PROFILE_NAV_ITEM.label}
               primaryTypographyProps={{ className: styles.navItemText }}

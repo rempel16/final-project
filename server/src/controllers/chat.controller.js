@@ -12,7 +12,6 @@ const isParticipant = async (chatId, userId) => {
 };
 
 const toThreadDto = async (chat, meId) => {
-  // participants уже populated
   const other =
     (chat.participants || []).find((u) => String(u._id) !== String(meId)) ??
     chat.participants?.[0];
@@ -68,7 +67,6 @@ const getOrCreateChat = async (req, res) => {
     return res.status(400).json({ message: "Invalid userId" });
   }
 
-  // Чат “один-на-один”: два участника, без групп
   let chat = await Chat.findOne({
     participants: { $all: [meId, userId] },
   })
@@ -137,7 +135,6 @@ const sendChatMessage = async (req, res) => {
     text: String(text).trim(),
   });
 
-  // чтобы чаты сортировались по активности
   await Chat.findByIdAndUpdate(chatId, { updatedAt: new Date() });
 
   res.status(201).json({

@@ -35,8 +35,7 @@ export const UserLink = ({
   subtitle,
   showFollowButton,
   actions,
-
-  to, // ← фикс
+  to,
 
   className,
   onFollowClick,
