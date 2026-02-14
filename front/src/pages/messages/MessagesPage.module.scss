@@ -21,8 +21,14 @@
   height: 80vh;
 }
 
+@media (min-width: 600px) {
+  .layout {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
 .threads {
-  border-right: 1px solid #e0e0e0;
+  border-right: 1px solid var(--mui-palette-divider);
   overflow-y: auto;
 }
 
@@ -33,40 +39,20 @@
 .chat {
   display: flex;
   flex-direction: column;
+  border-left: 0;
 }
 
 .chatHeader {
   padding: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--mui-palette-divider);
 }
 
 .chatBody {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
-}
 
-.messageRow {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
-}
-
-.messageBubble {
-  padding: 12px;
-  max-width: 70%;
-  background: #1976d2;
-  color: #ffffff;
-}
-
-.messageTime {
-  opacity: 0.7;
-}
-
-.composer {
-  padding: 16px;
-  display: flex;
-  gap: 8px;
+  background: var(--mui-palette-background-default);
 }
 
 .chatEmpty {
@@ -76,9 +62,52 @@
   flex: 1;
 }
 
-@media (min-width: 600px) {
-  .layout {
-    grid-template-columns: 300px 1fr;
-  }
+.messageRowMine,
+.messageRowOther {
+  display: flex;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
+.messageRowMine {
+  justify-content: flex-end;
+}
+
+.messageRowOther {
+  justify-content: flex-start;
+}
+
+.messageBubbleMine,
+.messageBubbleOther {
+  padding: 10px 14px;
+  max-width: min(520px, 80%);
+  border-radius: 16px;
+  word-break: break-word;
+}
+
+.messageBubbleMine {
+  background: var(--mui-palette-action-hover);
+  color: var(--mui-palette-text-primary);
+  border: 1px solid var(--mui-palette-divider);
+}
+
+.messageBubbleOther {
+  background: var(--mui-palette-primary-main);
+  color: var(--mui-palette-primary-contrastText);
+}
+
+.messageTime {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.6;
+  text-align: right;
+}
+
+.composer {
+  padding: 16px;
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--mui-palette-divider);
+  background: var(--mui-palette-background-paper);
+}

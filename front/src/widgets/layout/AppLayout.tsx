@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { FooterNav } from "../navigation/FooterNav/FooterNav";
 import { SidebarMenu } from "../navigation/SidebarMenu/SidebarMenu";
 import { SearchPanel } from "../search/SearchPanel";
+import { NotificationsDrawerContainer } from "../notification/NotificationsDrawerContainer";
 import { PostModal } from "@/entities/post/ui/PostModal/PostModal";
 import { usePostModal } from "../../features/postModal/model/usePostModal";
 import styles from "./AppLayout.module.scss";
@@ -22,42 +23,43 @@ export const AppLayout = ({ children }: Props) => {
 
   const isDesktop = useMediaQuery("(min-width:900px)");
   const isSearchOpen = location.pathname.startsWith("/search");
+  const isNotificationsOpen = location.pathname.startsWith("/notifications");
+  const isOverlayOpen = isSearchOpen || isNotificationsOpen;
 
   const { activePostId, close: closePostModal } = usePostModal();
 
-  // Запоминаем, где был пользователь ДО открытия поиска
-  const lastNonSearchPathRef = useRef<string>("/");
+  
+  const lastNonOverlayPathRef = useRef<string>("/");
   useEffect(() => {
-    if (!isSearchOpen) {
-      lastNonSearchPathRef.current = location.pathname + location.search;
+    if (!isOverlayOpen) {
+      lastNonOverlayPathRef.current = location.pathname + location.search;
     }
-  }, [isSearchOpen, location.pathname, location.search]);
+  }, [isOverlayOpen, location.pathname, location.search]);
 
-  // На десктопе при открытом /search НЕ рендерим SearchPage,
-  // а оставляем "фон" (последнюю не-search страницу)
   const [desktopBackground, setDesktopBackground] =
     useState<ReactNode>(children);
+
   useEffect(() => {
     if (!isDesktop) return;
-    if (!isSearchOpen) {
+    if (!isOverlayOpen) {
       const raf = window.requestAnimationFrame(() =>
         setDesktopBackground(children),
       );
       return () => window.cancelAnimationFrame(raf);
     }
-  }, [children, isDesktop, isSearchOpen]);
+  }, [children, isDesktop, isOverlayOpen]);
 
   const mainContent = useMemo(() => {
-    if (isDesktop && isSearchOpen) return desktopBackground;
+    if (isDesktop && isOverlayOpen) return desktopBackground;
     return children;
-  }, [children, desktopBackground, isDesktop, isSearchOpen]);
+  }, [children, desktopBackground, isDesktop, isOverlayOpen]);
 
-  const handleSearchClose = () => {
-    const backTo = lastNonSearchPathRef.current || "/";
+  const handleOverlayClose = () => {
+    const backTo = lastNonOverlayPathRef.current || "/";
     navigate(backTo);
   };
 
-  const isDimmed = isDesktop && isSearchOpen;
+  const isDimmed = isDesktop && isOverlayOpen;
 
   return (
     <div className={styles.root}>
@@ -66,18 +68,23 @@ export const AppLayout = ({ children }: Props) => {
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      {isDesktop && isSearchOpen ? (
+      {isDesktop && isOverlayOpen ? (
         <div className={styles.searchSpacer} />
       ) : null}
 
       {isDesktop ? (
-        <SearchPanel open={isSearchOpen} onClose={handleSearchClose} />
+        <SearchPanel open={isSearchOpen} onClose={handleOverlayClose} />
       ) : null}
+
+      <NotificationsDrawerContainer
+        open={isNotificationsOpen}
+        onClose={handleOverlayClose}
+      />
 
       {isDimmed ? (
         <div
           className={styles.pageOverlay}
-          onClick={handleSearchClose}
+          onClick={handleOverlayClose}
           aria-hidden="true"
         />
       ) : null}

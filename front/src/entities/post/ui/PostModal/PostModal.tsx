@@ -10,11 +10,14 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
+
+import { notificationsStore } from "@/widgets/notification/model/notificationsStore";
 
 import type { Post } from "../../model/types";
 import { postApi } from "../../api/postApi";
@@ -24,6 +27,8 @@ import { commentApi } from "@/entities/comment/api/commentApi";
 import { CommentItem } from "@/entities/comment/ui/CommentItem/CommentItem";
 import { UserLink } from "@/entities/user/UserLink/UserLink";
 import { PostModalMenu } from "./PostModalMenu";
+import { followApi } from "@/entities/follow/api/followApi";
+import { getMeId } from "@/shared/lib/me";
 
 import styles from "./PostModal.module.scss";
 
@@ -65,6 +70,12 @@ export const PostModal = ({ postId, onClose }: Props) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const meId = useMemo(() => getMeId(), []);
+  const meUsername = useMemo(
+    () => localStorage.getItem("username") ?? "me",
+    [],
+  );
+
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -92,10 +103,14 @@ export const PostModal = ({ postId, onClose }: Props) => {
     null,
   );
 
+  const [followPending, setFollowPending] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+
   const commentInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     let alive = true;
+
     setIsLoading(true);
     setErrorMessage(null);
     setImageError(false);
@@ -125,8 +140,8 @@ export const PostModal = ({ postId, onClose }: Props) => {
 
     const unsubscribe = postApi.subscribe((feed) => {
       if (!alive) return;
-      const next = feed.find((p) => p.id === postId) ?? null;
-      setPost(next);
+      const next = feed.find((p) => p.id === postId);
+      if (next) setPost(next);
     });
 
     return () => {
@@ -135,18 +150,15 @@ export const PostModal = ({ postId, onClose }: Props) => {
     };
   }, [postId]);
 
+  useEffect(() => {
+    if (!post) return;
+    const author = post.author as unknown as { isFollowing?: boolean };
+    setIsFollowing(Boolean(author?.isFollowing));
+  }, [post]);
+
   const timeLabel = useMemo(() => {
     if (!post?.createdAt) return "";
     return formatRelative(post.createdAt);
-  }, [post?.createdAt]);
-
-  const dateLabel = useMemo(() => {
-    if (!post?.createdAt) return "";
-    return new Date(post.createdAt).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
   }, [post?.createdAt]);
 
   const isLongCaption = useMemo(() => {
@@ -162,6 +174,7 @@ export const PostModal = ({ postId, onClose }: Props) => {
     setCommentsError(null);
 
     const limit = showAllComments ? 50 : 2;
+
     commentApi
       .getByPostId(post.id, { limit, offset: 0 })
       .then((items) => {
@@ -189,29 +202,70 @@ export const PostModal = ({ postId, onClose }: Props) => {
 
   const handleToggleLike = useCallback(async () => {
     if (!post || likePending) return;
+
     setLikePending(true);
     try {
       if (post.likedByMe) {
         await likeApi.unlike(post.id);
-      } else {
-        await likeApi.like(post.id);
+        return;
       }
-    } catch (err) {
-      window.alert((err as { message?: string })?.message ?? "Like failed");
+
+      await likeApi.like(post.id);
+
+      const authorId = (post.author as unknown as { id?: string })?.id;
+      if (authorId && authorId !== meId) {
+        notificationsStore.add({
+          username: meUsername,
+          text: "liked your post",
+          avatarUrl: undefined,
+          postPreviewUrl: post.imageUrl,
+          isRead: false,
+        });
+      }
     } finally {
       setLikePending(false);
     }
-  }, [likePending, post]);
+  }, [likePending, meId, meUsername, post]);
+
+  const handleToggleFollow = useCallback(async () => {
+    if (!post || followPending) return;
+
+    const authorId = (post.author as unknown as { id?: string })?.id;
+    if (!authorId) return;
+
+    setFollowPending(true);
+    try {
+      if (isFollowing) {
+        await followApi.unfollow(authorId);
+        setIsFollowing(false);
+        return;
+      }
+
+      await followApi.follow(authorId);
+      setIsFollowing(true);
+
+      if (authorId !== meId) {
+        notificationsStore.add({
+          username: meUsername,
+          text: "started following you",
+          avatarUrl: undefined,
+          isRead: false,
+        });
+      }
+    } finally {
+      setFollowPending(false);
+    }
+  }, [followPending, isFollowing, meId, meUsername, post]);
 
   const handleStartEdit = useCallback(() => {
     if (!post) return;
     setEditing(true);
     setEditText(post.text ?? "");
-    setCreateCommentError(null);
   }, [post]);
 
   const handleSaveEdit = useCallback(async () => {
     if (!post || saving) return;
+
     const nextText = editText.trim();
     if (!nextText) return;
 
@@ -220,8 +274,6 @@ export const PostModal = ({ postId, onClose }: Props) => {
       const updated = await postApi.update(post.id, { text: nextText });
       setPost(updated);
       setEditing(false);
-    } catch (err) {
-      window.alert((err as { message?: string })?.message ?? "Save failed");
     } finally {
       setSaving(false);
     }
@@ -229,25 +281,18 @@ export const PostModal = ({ postId, onClose }: Props) => {
 
   const handleDelete = useCallback(async () => {
     if (!post) return;
+
     const ok = window.confirm("Delete this post?");
     if (!ok) return;
 
-    try {
-      await postApi.delete(post.id);
-      onClose();
-    } catch (err) {
-      window.alert((err as { message?: string })?.message ?? "Delete failed");
-    }
+    await postApi.delete(post.id);
+    onClose();
   }, [onClose, post]);
 
   const handleCopyLink = useCallback(async () => {
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set("postId", postId);
-      await navigator.clipboard.writeText(url.toString());
-    } catch (err) {
-      window.alert((err as { message?: string })?.message ?? "Copy failed");
-    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("postId", postId);
+    await navigator.clipboard.writeText(url.toString());
   }, [postId]);
 
   const handleGoToPost = useCallback(() => {
@@ -258,18 +303,34 @@ export const PostModal = ({ postId, onClose }: Props) => {
 
   const handleCreateComment = useCallback(async () => {
     if (!post || creatingComment) return;
+
     const txt = newComment.trim();
     if (!txt) return;
 
     setCreatingComment(true);
     setCreateCommentError(null);
+
     try {
       const created = await commentApi.create(post.id, txt);
+
       setNewComment("");
       setShowAllComments(true);
       setComments((prev) =>
-        [...prev, created].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+        [...prev, created].sort((a, b) =>
+          a.createdAt.localeCompare(b.createdAt),
+        ),
       );
+
+      const authorId = (post.author as unknown as { id?: string })?.id;
+      if (authorId && authorId !== meId) {
+        notificationsStore.add({
+          username: meUsername,
+          text: "commented on your post",
+          avatarUrl: undefined,
+          postPreviewUrl: post.imageUrl,
+          isRead: false,
+        });
+      }
     } catch (err: unknown) {
       setCreateCommentError(
         (err as { message?: string })?.message ?? "Comment failed",
@@ -277,7 +338,7 @@ export const PostModal = ({ postId, onClose }: Props) => {
     } finally {
       setCreatingComment(false);
     }
-  }, [creatingComment, newComment, post]);
+  }, [creatingComment, meId, meUsername, newComment, post]);
 
   const content = isLoading ? (
     <Box className={styles.stateWrap}>
@@ -304,15 +365,15 @@ export const PostModal = ({ postId, onClose }: Props) => {
         />
 
         <div className={styles.headerActions}>
-          {!post.isMine ? (
+          {!post.isMine &&
+          (post.author as unknown as { id?: string })?.id !== meId ? (
             <Button
               variant="text"
               className={styles.followBtn}
-              onClick={() => {
-                // no-op for mock UI
-              }}
+              onClick={handleToggleFollow}
+              disabled={followPending}
             >
-              Follow
+              {isFollowing ? "Unfollow" : "Follow"}
             </Button>
           ) : null}
 
@@ -382,8 +443,6 @@ export const PostModal = ({ postId, onClose }: Props) => {
         </div>
       )}
 
-      {dateLabel ? <Typography className={styles.date}>{dateLabel}</Typography> : null}
-
       <div className={styles.actionsRow}>
         <div className={styles.actionGroup}>
           <IconButton
@@ -393,7 +452,10 @@ export const PostModal = ({ postId, onClose }: Props) => {
             className={styles.actionBtn}
           >
             {post.likedByMe ? (
-              <FavoriteRoundedIcon className={styles.likedIcon} fontSize="small" />
+              <FavoriteRoundedIcon
+                className={styles.likedIcon}
+                fontSize="small"
+              />
             ) : (
               <FavoriteBorderRoundedIcon fontSize="small" />
             )}
@@ -434,13 +496,12 @@ export const PostModal = ({ postId, onClose }: Props) => {
           ) : null}
         </div>
 
-        {commentsLoading ? (
-          <div className={styles.commentsState}>
-            <CircularProgress size={16} />
-            <Typography className={styles.mutedText}>Loading…</Typography>
-          </div>
-        ) : commentsError ? (
-          <Typography className={styles.inlineError}>{commentsError}</Typography>
+        {commentsError ? (
+          <Typography className={styles.inlineError}>
+            {commentsError}
+          </Typography>
+        ) : commentsLoading && comments.length === 0 ? (
+          <Typography className={styles.mutedText}>Loading…</Typography>
         ) : comments.length === 0 ? (
           <Typography className={styles.mutedText}>No comments yet</Typography>
         ) : (
@@ -516,7 +577,7 @@ export const PostModal = ({ postId, onClose }: Props) => {
   return (
     <Modal
       open
-      onClose={() => onClose()}
+      onClose={onClose}
       className={styles.overlay}
       slotProps={{ backdrop: { className: styles.backdrop } }}
       keepMounted

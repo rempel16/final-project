@@ -28,9 +28,9 @@ export interface NotificationsDrawerProps {
 export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   open,
   onClose,
-  title = "Уведомления",
+  title = "Notifications",
   sections = [],
-  emptyText = "Нет новых уведомлений",
+  emptyText = "No new notifications",
 }) => {
   const isEmpty =
     sections.length === 0 || sections.every((s) => s.items.length === 0);

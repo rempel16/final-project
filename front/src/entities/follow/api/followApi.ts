@@ -1,21 +1,19 @@
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { http } from "@/shared/api/http";
+import { API } from "@/shared/api/endpoints";
 
-const followingByMe = new Set<string>();
+type MeDto = { followingIds?: string[] };
 
 export const followApi = {
   isFollowing: async (userId: string): Promise<boolean> => {
-    await sleep(150);
-    return followingByMe.has(userId);
+    const { data } = await http.get<MeDto>(API.users.me);
+    return Boolean(data.followingIds?.includes(userId));
   },
 
   follow: async (userId: string): Promise<void> => {
-    await sleep(150);
-    followingByMe.add(userId);
+    await http.post(API.users.follow(userId));
   },
 
   unfollow: async (userId: string): Promise<void> => {
-    await sleep(150);
-    followingByMe.delete(userId);
+    await http.post(API.users.follow(userId));
   },
 };
-

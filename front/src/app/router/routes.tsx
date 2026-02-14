@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { SignupPage } from "@/pages/auth/SignupPage";
@@ -14,10 +14,11 @@ import { MessagesPage } from "@/pages/messages/MessagesPage";
 
 import { ProtectedLayout } from "@/widgets/layout/ProtectedLayout";
 import { RouteFallback } from "./RouteFallback";
-
 import { NotFoundPage } from "@/pages/not-found/NotFoundPage";
 
-export const router = createBrowserRouter([
+const NotificationsRoute = () => null;
+
+const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/signup", element: <SignupPage /> },
   { path: "/reset", element: <ResetPage /> },
@@ -32,9 +33,13 @@ export const router = createBrowserRouter([
       { path: "/profile/:userId", element: <ProfilePage /> },
       { path: "/profile/edit", element: <EditProfilePage /> },
       { path: "/messages", element: <MessagesPage /> },
+      { path: "/notifications", element: <NotificationsRoute /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },
 
   { path: "*", element: <RouteFallback /> },
 ]);
+
+export const AppRouter = () => <RouterProvider router={router} />;
+export default AppRouter;

@@ -1,9 +1,4 @@
-import {
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-} from "@mui/material";
+import { ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LinkIcon from "@mui/icons-material/Link";
@@ -33,16 +28,11 @@ export const PostModalMenu = ({
   onCopyLink,
   onClose,
 }: Props) => {
-  return (
-    <Menu
-      open={open}
-      anchorEl={anchorEl}
-      onClose={onClose}
-      PaperProps={{ className: styles.paper }}
-    >
-      {isMine ? (
-        <>
+  const items = [
+    ...(isMine
+      ? [
           <MenuItem
+            key="edit"
             onClick={() => {
               onEdit();
               onClose();
@@ -52,8 +42,9 @@ export const PostModalMenu = ({
               <EditIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Edit</ListItemText>
-          </MenuItem>
+          </MenuItem>,
           <MenuItem
+            key="delete"
             onClick={() => {
               onDelete();
               onClose();
@@ -63,41 +54,52 @@ export const PostModalMenu = ({
               <DeleteIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Delete</ListItemText>
-          </MenuItem>
-        </>
-      ) : null}
+          </MenuItem>,
+        ]
+      : []),
 
-      <MenuItem
-        onClick={() => {
-          onGoToPost();
-          onClose();
-        }}
-      >
-        <ListItemIcon>
-          <LinkIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText>Go to post</ListItemText>
-      </MenuItem>
+    <MenuItem
+      key="goto"
+      onClick={() => {
+        onGoToPost();
+        onClose();
+      }}
+    >
+      <ListItemIcon>
+        <LinkIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Go to post</ListItemText>
+    </MenuItem>,
 
-      <MenuItem
-        onClick={() => {
-          onCopyLink();
-          onClose();
-        }}
-      >
-        <ListItemIcon>
-          <ContentCopyIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText>Copy link</ListItemText>
-      </MenuItem>
+    <MenuItem
+      key="copy"
+      onClick={() => {
+        onCopyLink();
+        onClose();
+      }}
+    >
+      <ListItemIcon>
+        <ContentCopyIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Copy link</ListItemText>
+    </MenuItem>,
 
-      <MenuItem onClick={onClose}>
-        <ListItemIcon>
-          <CancelIcon fontSize="small" />
-        </ListItemIcon>
-        <ListItemText>Cancel</ListItemText>
-      </MenuItem>
+    <MenuItem key="cancel" onClick={onClose}>
+      <ListItemIcon>
+        <CancelIcon fontSize="small" />
+      </ListItemIcon>
+      <ListItemText>Cancel</ListItemText>
+    </MenuItem>,
+  ];
+
+  return (
+    <Menu
+      open={open}
+      anchorEl={anchorEl}
+      onClose={onClose}
+      PaperProps={{ className: styles.paper }}
+    >
+      {items}
     </Menu>
   );
 };
-

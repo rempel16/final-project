@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema(
     name: { type: String, default: "" },
     bio: { type: String, default: "" },
     avatar: { type: String, default: "" },
+
+    following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
   },
   { timestamps: true },
 );

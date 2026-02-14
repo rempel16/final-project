@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Avatar,
   Button,
@@ -17,11 +17,25 @@ import {
 } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 
+import { getMeId } from "@/shared/lib/me";
 import { messageApi, type Message, type Thread } from "@/shared/api/messageApi";
 import styles from "./MessagesPage.module.scss";
 
-const getErrorMessage = (err: unknown) =>
-  (err as { message?: string })?.message ?? "Something went wrong";
+type LocalMessage = Message & { _status?: "sending" | "failed" };
+
+const mergeUniqueById = (prev: LocalMessage[], next: Message[]) => {
+  const map = new Map<string, LocalMessage>();
+  for (const m of prev) map.set(m.id, m);
+
+  for (const m of next) {
+    const existing = map.get(m.id);
+    map.set(m.id, { ...(existing ?? {}), ...m, _status: existing?._status });
+  }
+
+  return Array.from(map.values()).sort(
+    (a, b) => +new Date(a.createdAt) - +new Date(b.createdAt),
+  );
+};
 
 export const MessagesPage = () => {
   const [searchParams] = useSearchParams();
@@ -30,13 +44,15 @@ export const MessagesPage = () => {
     [searchParams],
   );
 
+  const meId = useMemo(() => getMeId(), []);
+
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(true);
   const [threadsError, setThreadsError] = useState<string | null>(null);
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState<string | null>(null);
 
@@ -45,20 +61,40 @@ export const MessagesPage = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const loadThreads = async () => {
+  const loadThreads = useCallback(async () => {
     setThreadsLoading(true);
     setThreadsError(null);
 
     try {
       const data = await messageApi.getThreads();
-      setThreads(Array.isArray(data) ? data : []);
-      if ((Array.isArray(data) ? data : []).length > 0) {
-        setSelectedThreadId((prev) => prev ?? data[0].id);
+      const next = Array.isArray(data) ? data : [];
+      setThreads(next);
+
+      if (requestedUserId) {
+        const existing = next.find((t) => t.participant.id === requestedUserId);
+
+        if (existing) {
+          setSelectedThreadId(existing.id);
+          return;
+        }
+
+        const created = await messageApi.getOrCreateThread(requestedUserId);
+
+        setThreads((prev) => {
+          const exists = prev.some((t) => t.id === created.id);
+          return exists ? prev : [created, ...prev];
+        });
+
+        setSelectedThreadId(created.id);
+        return;
+      }
+
+      if (next.length > 0) {
+        setSelectedThreadId((prev) => prev ?? next[0].id);
       } else {
         setSelectedThreadId(null);
       }
     } catch (err) {
-      // ВАЖНО: не валим всю страницу. Просто показываем ошибку в списке диалогов.
       console.error("Failed to load threads:", err);
       setThreads([]);
       setSelectedThreadId(null);
@@ -66,15 +102,16 @@ export const MessagesPage = () => {
     } finally {
       setThreadsLoading(false);
     }
-  };
+  }, [requestedUserId]);
 
-  const loadMessages = async (threadId: string) => {
+  const loadMessages = useCallback(async (threadId: string) => {
     setMessagesLoading(true);
     setMessagesError(null);
 
     try {
       const data = await messageApi.getMessages(threadId);
-      setMessages(data?.messages ?? []);
+      const next = Array.isArray(data) ? data : [];
+      setMessages((prev) => mergeUniqueById(prev, next));
     } catch (err) {
       console.error("Failed to load messages:", err);
       setMessages([]);
@@ -82,12 +119,11 @@ export const MessagesPage = () => {
     } finally {
       setMessagesLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadThreads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadThreads]);
 
   useEffect(() => {
     if (!selectedThreadId) {
@@ -104,40 +140,49 @@ export const MessagesPage = () => {
     }, 3000);
 
     return () => window.clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedThreadId]);
+  }, [selectedThreadId, loadMessages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!messageText.trim() || !selectedThreadId) return;
 
     setSendingMessage(true);
+
     try {
-      const newMessage = await messageApi.sendMessage(
-        selectedThreadId,
-        messageText.trim(),
-      );
-      setMessages((prev) => [...prev, newMessage]);
+      const newMessage = await messageApi.sendMessage(selectedThreadId, {
+        text: messageText.trim(),
+      });
+
+      setMessages((prev) => mergeUniqueById(prev, [newMessage]));
       setMessageText("");
       setMessagesError(null);
+
+      setThreads((prev) => {
+        const idx = prev.findIndex((t) => t.id === selectedThreadId);
+        if (idx < 0) return prev;
+        const next = [...prev];
+        const [picked] = next.splice(idx, 1);
+        return [{ ...picked, lastMessage: newMessage.text }, ...next];
+      });
     } catch (err) {
       console.error("Failed to send message:", err);
       setMessagesError("Failed to send message.");
-      window.alert(getErrorMessage(err));
     } finally {
       setSendingMessage(false);
     }
-  };
+  }, [messageText, selectedThreadId]);
 
-  const selectedThread = threads.find((t) => t.id === selectedThreadId);
+  const selectedThread = useMemo(
+    () => threads.find((t) => t.id === selectedThreadId),
+    [threads, selectedThreadId],
+  );
 
   return (
     <Container maxWidth="lg" className={styles.container}>
       <div className={styles.layout}>
-        {/* Threads List */}
         <Paper elevation={0} className={styles.threads}>
           <div className={styles.threadsHeader}>
             <Typography variant="h6">Messages</Typography>
@@ -145,7 +190,7 @@ export const MessagesPage = () => {
               <Button
                 type="button"
                 variant="text"
-                onClick={loadThreads}
+                onClick={() => void loadThreads()}
                 disabled={threadsLoading}
                 className={styles.refreshBtn}
               >
@@ -167,7 +212,11 @@ export const MessagesPage = () => {
                 <Typography color="text.secondary" sx={{ mb: 2 }}>
                   Unable to load conversations.
                 </Typography>
-                <Button type="button" variant="contained" onClick={loadThreads}>
+                <Button
+                  type="button"
+                  variant="contained"
+                  onClick={() => void loadThreads()}
+                >
                   Retry
                 </Button>
               </Paper>
@@ -178,7 +227,7 @@ export const MessagesPage = () => {
                 <ListItem>
                   <Typography color="text.secondary">
                     {requestedUserId
-                      ? "No conversations yet. (You came here from a profile, but there is no backend logic to create a new thread yet.)"
+                      ? "No conversations yet."
                       : "No messages yet"}
                   </Typography>
                 </ListItem>
@@ -209,7 +258,6 @@ export const MessagesPage = () => {
           )}
         </Paper>
 
-        {/* Chat */}
         <Paper elevation={0} className={styles.chat}>
           {selectedThread ? (
             <>
@@ -242,19 +290,36 @@ export const MessagesPage = () => {
                   </div>
                 ) : (
                   <Stack spacing={1}>
-                    {messages.map((msg) => (
-                      <div key={msg.id} className={styles.messageRow}>
-                        <Paper className={styles.messageBubble}>
-                          <Typography variant="body2">{msg.text}</Typography>
-                          <Typography
-                            variant="caption"
-                            className={styles.messageTime}
+                    {messages.map((msg) => {
+                      const isMine = Boolean(meId) && msg.senderId === meId;
+
+                      return (
+                        <div
+                          key={msg.id}
+                          className={
+                            isMine
+                              ? styles.messageRowMine
+                              : styles.messageRowOther
+                          }
+                        >
+                          <Paper
+                            className={
+                              isMine
+                                ? styles.messageBubbleMine
+                                : styles.messageBubbleOther
+                            }
                           >
-                            {new Date(msg.createdAt).toLocaleTimeString()}
-                          </Typography>
-                        </Paper>
-                      </div>
-                    ))}
+                            <Typography variant="body2">{msg.text}</Typography>
+                            <Typography
+                              variant="caption"
+                              className={styles.messageTime}
+                            >
+                              {new Date(msg.createdAt).toLocaleTimeString()}
+                            </Typography>
+                          </Paper>
+                        </div>
+                      );
+                    })}
                     <div ref={messagesEndRef} />
                   </Stack>
                 )}
@@ -272,7 +337,7 @@ export const MessagesPage = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      handleSendMessage();
+                      void handleSendMessage();
                     }
                   }}
                   disabled={sendingMessage}
@@ -280,7 +345,7 @@ export const MessagesPage = () => {
 
                 <Button
                   variant="contained"
-                  onClick={handleSendMessage}
+                  onClick={() => void handleSendMessage()}
                   disabled={!messageText.trim() || sendingMessage}
                 >
                   {sendingMessage ? <CircularProgress size={24} /> : "Send"}

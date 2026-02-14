@@ -1,16 +1,15 @@
-import { __postModalMockDb } from "../../post/api/postApi";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { http } from "@/shared/api/http";
+import { API } from "@/shared/api/endpoints";
+import { postApi } from "@/entities/post/api/postApi";
 
 export const likeApi = {
   like: async (postId: string) => {
-    await sleep(150);
-    __postModalMockDb.setPostLikedByMe(postId, true);
+    await http.post(API.posts.like(postId), { liked: true });
+    await postApi.getById(postId);
   },
 
   unlike: async (postId: string) => {
-    await sleep(150);
-    __postModalMockDb.setPostLikedByMe(postId, false);
+    await http.post(API.posts.like(postId), { liked: false });
+    await postApi.getById(postId);
   },
 };
-

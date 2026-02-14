@@ -11,6 +11,8 @@ import { getMeId } from "@/shared/lib/me";
 import { PageState } from "@/shared/ui/PageState/PageState";
 import styles from "./ProfilePage.module.scss";
 
+import { normalizeAvatarSrc } from "@/shared/lib/normalizeAvatar";
+
 const getErrorMessage = (err: unknown) =>
   (err as { message?: string })?.message ?? "Something went wrong";
 
@@ -143,7 +145,7 @@ export const ProfilePage = () => {
           <Box className={styles.header}>
             <div className={styles.avatarWrap}>
               <Avatar
-                src={profile.avatarUrl ?? undefined}
+                src={normalizeAvatarSrc(profile.avatarUrl)}
                 className={styles.avatar}
               >
                 {profile.username.slice(0, 1).toUpperCase()}

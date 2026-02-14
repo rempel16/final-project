@@ -1,6 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { tokenStorage } from "@/shared/lib/storage";
 import { AuthContext, type AuthContextValue } from "./authContext";
+
+const READY = true;
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(() => tokenStorage.get());
@@ -15,8 +17,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(null);
   };
 
+  useEffect(() => {
+    const onLogout = () => setToken(null);
+    window.addEventListener("auth:logout", onLogout);
+    return () => window.removeEventListener("auth:logout", onLogout);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ isAuthed: Boolean(token), token, login, logout }),
+    () => ({ isAuthed: Boolean(token), token, login, logout, ready: READY }),
     [token],
   );
 

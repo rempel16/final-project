@@ -39,8 +39,8 @@ export const LoginPage = () => {
 
     const nextErrors: typeof errors = {};
     if (!emailOrUsername.trim())
-      nextErrors.emailOrUsername = "Введите email или username";
-    if (!password.trim()) nextErrors.password = "Введите пароль";
+      nextErrors.emailOrUsername = "Enter email or username";
+    if (!password.trim()) nextErrors.password = "Enter password";
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -56,7 +56,7 @@ export const LoginPage = () => {
     } catch (err) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Не удалось войти. Попробуйте ещё раз.";
+          ?.message ?? "Failed to log in. Please try again.";
       setErrors({ server: message });
     } finally {
       setIsLoading(false);

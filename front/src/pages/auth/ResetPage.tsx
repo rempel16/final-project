@@ -26,7 +26,7 @@ export const ResetPage = () => {
     setSuccessText(null);
 
     if (!identifier.trim()) {
-      setErrorText("Введите email или username");
+      setErrorText("Enter your email or username");
       return;
     }
 
@@ -39,7 +39,7 @@ export const ResetPage = () => {
     } catch (err) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Не удалось отправить reset-ссылку. Попробуйте ещё раз.";
+          ?.message ?? "Failed to send reset link. Please try again.";
       setErrorText(message);
     } finally {
       setIsLoading(false);

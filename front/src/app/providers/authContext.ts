@@ -3,6 +3,7 @@ import { createContext, useContext } from "react";
 export type AuthContextValue = {
   isAuthed: boolean;
   token: string | null;
+  ready: boolean;
   login: (token: string) => void;
   logout: () => void;
 };

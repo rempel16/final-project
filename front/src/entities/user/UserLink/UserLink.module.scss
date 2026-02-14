@@ -76,12 +76,10 @@
 }
 
 .followBtn:hover {
-  /* без primary-dark, как ты и просила */
   filter: brightness(0.92);
 }
 
 .profileHeader {
-  /* подключим, когда увидим ProfilePage */
   .avatar {
     width: 48px;
     height: 48px;

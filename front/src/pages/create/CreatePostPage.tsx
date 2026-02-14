@@ -1,36 +1,88 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import {
+  Alert,
+  Avatar,
+  Button,
+  CircularProgress,
+  Snackbar,
+} from "@mui/material";
+
+import { postApi } from "@/entities/post/api/postApi";
+import { userApi, type UserProfile } from "@/entities/user/api";
+import { normalizeAvatarSrc } from "@/shared/lib/normalizeAvatar";
+
 import styles from "./CreatePostPage.module.scss";
+
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 
 type ModalState = { backgroundLocation?: unknown };
 const CAPTION_MAX = 1200;
+
+const getErrorMessage = (err: unknown) =>
+  (err as { message?: string })?.message ?? "Something went wrong";
 
 export const CreatePostPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as ModalState | null;
   const isModal = useMemo(() => Boolean(state?.backgroundLocation), [state]);
+
   const [caption, setCaption] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isPosting, setIsPosting] = useState(false);
+
+  const [me, setMe] = useState<UserProfile | null>(null);
+
+  const [toast, setToast] = useState<{
+    open: boolean;
+    severity: "success" | "error";
+    message: string;
+  }>({ open: false, severity: "success", message: "" });
+
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await userApi.getMe();
+        if (alive) setMe(res);
+      } catch {
+        if (alive) setMe(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const handleClose = () => {
     if (isModal) navigate(-1);
     else navigate("/");
   };
+
   const openPicker = () => inputRef.current?.click();
+
   const setFile = (file: File) => {
     setImageFile(file);
-    const url = URL.createObjectURL(file);
-    setImageUrl(url);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : null;
+      setImageUrl(result);
+    };
+    reader.readAsDataURL(file);
   };
+
   const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) return;
     setFile(file);
   };
+
   const onDrop: React.DragEventHandler<HTMLButtonElement> = (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
@@ -38,32 +90,81 @@ export const CreatePostPage = () => {
     if (!file.type.startsWith("image/")) return;
     setFile(file);
   };
+
   const onDragOver: React.DragEventHandler<HTMLButtonElement> = (e) => {
     e.preventDefault();
   };
-  const canShare = Boolean(imageFile);
+
+  const canShare = Boolean(imageFile) && Boolean(imageUrl) && !isPosting;
+
+  const insertEmoji = (emoji: string) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setCaption((prev) => (prev + emoji).slice(0, CAPTION_MAX));
+      return;
+    }
+
+    const start = el.selectionStart ?? caption.length;
+    const end = el.selectionEnd ?? caption.length;
+
+    const next = (caption.slice(0, start) + emoji + caption.slice(end)).slice(
+      0,
+      CAPTION_MAX,
+    );
+    setCaption(next);
+
+    requestAnimationFrame(() => {
+      const pos = Math.min(start + emoji.length, CAPTION_MAX);
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    });
+  };
+
+  const postNow = async () => {
+    if (!imageUrl || !imageFile || isPosting) return;
+
+    setIsPosting(true);
+    try {
+      await postApi.create({ imageUrl, text: caption });
+      setToast({ open: true, severity: "success", message: "Post created" });
+      navigate("/", { replace: true });
+    } catch (err) {
+      const msg = getErrorMessage(err) ?? "Failed to create";
+      setToast({ open: true, severity: "error", message: msg });
+      setIsPosting(false);
+    }
+  };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal} role="dialog" aria-modal="true">
+    <div className={styles.overlay} onClick={handleClose}>
+      <div
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.header}>
           <button
             className={styles.headerBtn}
             onClick={handleClose}
             aria-label="Close"
+            type="button"
           >
             ×
           </button>
+
           <div className={styles.headerTitle}>Create new post</div>
-          <button
-            className={
-              canShare ? styles.headerBtnPrimary : styles.headerBtnDisabled
-            }
+
+          <Button
+            className={styles.headerBtnPrimary}
             disabled={!canShare}
+            onClick={postNow}
+            size="small"
           >
-            Share
-          </button>
+            {isPosting ? <CircularProgress size={18} /> : "Post"}
+          </Button>
         </div>
+
         <div className={styles.body}>
           <div className={styles.mediaCol}>
             <button
@@ -72,16 +173,23 @@ export const CreatePostPage = () => {
               onClick={openPicker}
               onDrop={onDrop}
               onDragOver={onDragOver}
+              aria-disabled={isPosting}
+              disabled={isPosting}
             >
               {imageUrl ? (
                 <img className={styles.previewImg} src={imageUrl} alt="" />
               ) : (
                 <>
-                  <div className={styles.uploadIcon} />
-                  <div className={styles.uploadText}>Drag photos here</div>
-                  <div className={styles.uploadHint}>Click to upload</div>
+                  <div className={styles.uploadIcon}>
+                    <CloudUploadIcon fontSize="large" />
+                  </div>
+                  <div className={styles.uploadText}>Upload</div>
+                  <div className={styles.uploadHint}>
+                    Drag &amp; drop or click
+                  </div>
                 </>
               )}
+
               <input
                 ref={inputRef}
                 className={styles.fileInput}
@@ -90,26 +198,64 @@ export const CreatePostPage = () => {
                 onChange={onPickFile}
               />
             </button>
+
+            {imageUrl ? (
+              <div className={styles.previewActions}>
+                <button
+                  className={styles.secondaryBtn}
+                  type="button"
+                  onClick={openPicker}
+                  disabled={isPosting}
+                >
+                  Replace
+                </button>
+                <button
+                  className={styles.secondaryBtn}
+                  type="button"
+                  onClick={() => {
+                    setImageFile(null);
+                    setImageUrl(null);
+                    if (inputRef.current) inputRef.current.value = "";
+                  }}
+                  disabled={isPosting}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : null}
           </div>
+
           <div className={styles.detailsCol}>
+      
+
             <div className={styles.userRow}>
-              <div className={styles.miniAvatar} />
-              <div className={styles.username}>skai_laba</div>
+              <Avatar
+                className={styles.miniAvatar}
+                src={normalizeAvatarSrc(me?.avatarUrl ?? null)}
+              >
+                {(me?.username ?? "U").slice(0, 1).toUpperCase()}
+              </Avatar>
+              <div className={styles.username}>{me?.username ?? "unknown"}</div>
             </div>
+
             <textarea
+              ref={textareaRef}
               className={styles.textarea}
               placeholder="Write a caption..."
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               maxLength={CAPTION_MAX}
               rows={8}
+              disabled={isPosting}
             />
+
             <div className={styles.footer}>
               <button
                 className={styles.emojiBtn}
-                tabIndex={-1}
                 type="button"
                 aria-label="Emoji"
+                disabled={isPosting}
+                onClick={() => insertEmoji("😊")}
               >
                 😊
               </button>
@@ -120,6 +266,21 @@ export const CreatePostPage = () => {
           </div>
         </div>
       </div>
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={2400}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setToast((t) => ({ ...t, open: false }))}
+          severity={toast.severity}
+          variant="filled"
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

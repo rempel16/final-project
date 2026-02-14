@@ -54,7 +54,7 @@ export const SearchPage = () => {
         })
         .catch((err) => {
           setIsError(true);
-          setErrorMessage(err?.message || "Ошибка поиска");
+          setErrorMessage(err?.message || "Errow");
           setResults([]);
         })
         .finally(() => setIsLoading(false));
@@ -75,18 +75,16 @@ export const SearchPage = () => {
       })
       .catch((err) => {
         setIsError(true);
-        setErrorMessage(err?.message || "Ошибка поиска");
+        setErrorMessage(err?.message || "Error");
         setResults([]);
       })
       .finally(() => setIsLoading(false));
   }, [query]);
 
   const handleUserClick = (id: string) => {
-    // мобильное поведение: переход на профиль
     navigate(`/profile/${id}`);
   };
 
-  // Десктоп: поиск рисуется SearchPanel-ом поверх. Эта страница не нужна.
   if (isDesktop) return null;
 
   return (
@@ -110,9 +108,7 @@ export const SearchPage = () => {
 
         {isError && (
           <Stack spacing={1} className={styles.emptyWrap}>
-            <Typography color="error">
-              {errorMessage || "Ошибка поиска"}
-            </Typography>
+            <Typography color="error">{errorMessage || "Error"}</Typography>
             <Button onClick={handleRetry}>Retry</Button>
           </Stack>
         )}
@@ -124,10 +120,10 @@ export const SearchPage = () => {
           touched && (
             <Stack spacing={1} className={styles.emptyWrap}>
               <Typography className={styles.emptyTitle}>
-                Пользователи не найдены
+                Users not found
               </Typography>
               <Typography className={styles.emptyText}>
-                Попробуйте изменить запрос
+                Try changing your request
               </Typography>
             </Stack>
           )}

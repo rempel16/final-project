@@ -11,6 +11,14 @@ const postSchema = new mongoose.Schema(
     imageUrl: { type: String, required: true },
     imageMeta: { type: Object, default: null },
     text: { type: String, maxlength: 1200, default: "" },
+
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: [],
+      },
+    ],
   },
   { timestamps: true },
 );

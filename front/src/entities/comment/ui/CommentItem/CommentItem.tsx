@@ -27,7 +27,6 @@ const formatRelative = (iso: string) => {
   const week = Math.floor(day / 7);
   if (week < 5) return `${week} wk`;
 
-  // дальше уже без цирка: просто дата
   return new Date(iso).toLocaleDateString();
 };
 
@@ -45,7 +44,7 @@ export const CommentItem = ({ comment, onUpdated, onDeleted }: Props) => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await commentApi.update(comment.id, text);
+      const updated = await commentApi.update(comment.postId, comment.id, text);
       onUpdated(updated);
       setMode("view");
     } catch (err) {
@@ -61,7 +60,7 @@ export const CommentItem = ({ comment, onUpdated, onDeleted }: Props) => {
 
     setDeleting(true);
     try {
-      await commentApi.delete(comment.id);
+      await commentApi.delete(comment.postId, comment.id);
       onDeleted(comment.id);
     } catch (err) {
       window.alert(getErrorMessage(err));

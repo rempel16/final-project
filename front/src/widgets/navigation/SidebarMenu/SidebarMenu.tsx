@@ -1,16 +1,21 @@
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Avatar,
+  Badge,
   Divider,
+  Drawer,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Paper,
 } from "@mui/material";
-import Drawer from "@mui/material/Drawer";
-import { useLocation, useNavigate } from "react-router-dom";
 
+import { userApi, type UserProfile } from "@/entities/user/api";
 import { NAV_ITEMS, PROFILE_NAV_ITEM } from "@/shared/config/navigation";
+import { notificationsStore } from "@/widgets/notification/model/notificationsStore";
+
 import styles from "./SidebarMenu.module.scss";
 
 type Props = {
@@ -27,7 +32,42 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const activeTo = getActiveTo(location.pathname);
+  const [me, setMe] = useState<UserProfile | null>(null);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+
+    userApi
+      .getMe()
+      .then((data) => {
+        if (alive) setMe(data);
+      })
+      .catch(() => {
+        if (alive) setMe(null);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const check = () => {
+      const items = notificationsStore.getAll();
+      setHasUnread(items.some((n) => !n.isRead));
+    };
+
+    check();
+    window.addEventListener("ichgram:notifications", check);
+    return () => window.removeEventListener("ichgram:notifications", check);
+  }, []);
+
+  const activeTo = useMemo(
+    () => getActiveTo(location.pathname),
+    [location.pathname],
+  );
+
   const profileSelected =
     PROFILE_NAV_ITEM.isActive?.(location.pathname) ?? false;
 
@@ -50,11 +90,13 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
           draggable={false}
         />
       </div>
+
       <Divider />
 
       <List className={styles.navList}>
         {NAV_ITEMS.map((item) => {
           const selected = activeTo === item.to;
+          const isNotifications = item.to === "/notifications";
 
           return (
             <ListItemButton
@@ -65,8 +107,28 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
               className={styles.navItem}
             >
               <ListItemIcon className={styles.navIcon}>
-                <img className={styles.navIconImg} src={item.iconSrc} alt="" />
+                {isNotifications ? (
+                  <Badge
+                    color="error"
+                    variant="dot"
+                    invisible={!hasUnread}
+                    overlap="circular"
+                  >
+                    <img
+                      className={styles.navIconImg}
+                      src={item.iconSrc}
+                      alt=""
+                    />
+                  </Badge>
+                ) : (
+                  <img
+                    className={styles.navIconImg}
+                    src={item.iconSrc}
+                    alt=""
+                  />
+                )}
               </ListItemIcon>
+
               <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{ className: styles.navItemText }}
@@ -85,8 +147,12 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
             className={styles.navItem}
           >
             <ListItemIcon className={styles.navIcon}>
-              <Avatar className={styles.profileAvatar}>ME</Avatar>
+              <Avatar
+                className={styles.profileAvatar}
+                src={me?.avatarUrl ?? undefined}
+              />
             </ListItemIcon>
+
             <ListItemText
               primary={PROFILE_NAV_ITEM.label}
               primaryTypographyProps={{ className: styles.navItemText }}
@@ -105,22 +171,23 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
           }}
           className={styles.logoutItem}
         >
-          <svg
-            className={styles.navIcon}
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M16 17L21 12M21 12L16 7M21 12H9M13 21H5C4.44772 21 4 20.5523 4 20V4C4 3.44772 4.44772 3 5 3H13"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <span className={styles.logoutIcon}>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M16 17L21 12M21 12L16 7M21 12H9M13 21H5C4.44772 21 4 20.5523 4 20V4C4 3.44772 4.44772 3 5 3H13"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
           <span className={styles.navItemText}>Log out</span>
         </button>
       </div>

@@ -5,6 +5,9 @@ const cors = require("cors");
 const { connectDB } = require("./src/config/db");
 const authRoutes = require("./src/routes/authRoutes");
 const healthRoutes = require("./src/routes/healthRoutes");
+const chatsRoutes = require("./src/routes/chatRoutes");
+const usersRoutes = require("./src/routes/userRoutes");
+const postsRoutes = require("./src/routes/postRoutes");
 
 const app = express();
 
@@ -16,11 +19,15 @@ app.use(
 );
 app.options(/.*/, cors());
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.get("/health", (_, res) => res.json({ ok: true }));
 app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/posts", postsRoutes);
+app.use("/api/chats", chatsRoutes);
 
 (async () => {
   await connectDB();

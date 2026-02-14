@@ -36,7 +36,6 @@ export const NAV_ITEMS: NavItem[] = [
     to: "/notifications",
     iconSrc: "/icon/Notifications.svg",
     isActive: (p) => p.startsWith("/notifications"),
-    disabled: true,
   },
   {
     label: "Create",

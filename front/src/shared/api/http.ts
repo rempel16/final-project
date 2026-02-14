@@ -1,11 +1,11 @@
-import axios from 'axios';
-import { tokenStorage } from '../lib/storage';
+import axios from "axios";
+import { tokenStorage } from "@/shared/lib/storage";
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 
 export const http = axios.create({
   baseURL: API_URL,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 
 http.interceptors.request.use((config) => {
@@ -14,7 +14,31 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
+let didLogoutOn401 = false;
+
 http.interceptors.response.use(
   (res) => res,
-  (err) => Promise.reject(err)
+  (err) => {
+    const status = err?.response?.status;
+    const url: string = err?.config?.url ?? "";
+
+    const isAuthRoute =
+      url.includes("/auth/login") ||
+      url.includes("/auth/signup") ||
+      url.includes("/auth/reset");
+
+    if (status === 401 && !isAuthRoute) {
+      const hasToken = Boolean(tokenStorage.get());
+
+      if (hasToken && !didLogoutOn401) {
+        didLogoutOn401 = true;
+        tokenStorage.remove();
+        window.dispatchEvent(new Event("auth:logout"));
+      }
+    }
+
+    if (tokenStorage.get()) didLogoutOn401 = false;
+
+    return Promise.reject(err);
+  },
 );

@@ -25,19 +25,24 @@ export const getMeId = (): string => {
   try {
     const payload = decodeJwtPayload(token);
     if (payload && typeof payload === "object") {
+      // Server signs { id: string }
+      if (
+        "id" in payload &&
+        typeof (payload as { id?: unknown }).id === "string"
+      ) {
+        return (payload as { id: string }).id;
+      }
       if (
         "userId" in payload &&
         typeof (payload as { userId?: unknown }).userId === "string"
       ) {
-        const id = (payload as { userId: string }).userId;
-        return id.startsWith("user-") ? id : MOCK_ME_ID;
+        return (payload as { userId: string }).userId;
       }
       if (
         "sub" in payload &&
         typeof (payload as { sub?: unknown }).sub === "string"
       ) {
-        const id = (payload as { sub: string }).sub;
-        return id.startsWith("user-") ? id : MOCK_ME_ID;
+        return (payload as { sub: string }).sub;
       }
     }
   } catch {
@@ -46,4 +51,3 @@ export const getMeId = (): string => {
 
   return MOCK_ME_ID;
 };
-
