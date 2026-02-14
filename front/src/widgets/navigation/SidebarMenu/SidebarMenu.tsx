@@ -7,9 +7,11 @@ import {
   ListItemText,
   Paper,
 } from "@mui/material";
-import Drawer from "@mui/material/Drawer";
+import { Drawer } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { userApi, type UserProfile } from "@/entities/user/api";
 import { NAV_ITEMS, PROFILE_NAV_ITEM } from "@/shared/config/navigation";
 import styles from "./SidebarMenu.module.scss";
 
@@ -26,6 +28,25 @@ const getActiveTo = (pathname: string) => {
 export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const [me, setMe] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+
+    userApi
+      .getMe()
+      .then((data) => {
+        if (alive) setMe(data);
+      })
+      .catch(() => {
+        if (alive) setMe(null);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const activeTo = getActiveTo(location.pathname);
   const profileSelected =
@@ -50,6 +71,7 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
           draggable={false}
         />
       </div>
+
       <Divider />
 
       <List className={styles.navList}>
@@ -85,7 +107,10 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
             className={styles.navItem}
           >
             <ListItemIcon className={styles.navIcon}>
-              <Avatar className={styles.profileAvatar}>ME</Avatar>
+              <Avatar
+                className={styles.profileAvatar}
+                src={me?.avatarUrl ?? undefined}
+              />
             </ListItemIcon>
             <ListItemText
               primary={PROFILE_NAV_ITEM.label}
@@ -105,22 +130,23 @@ export const SidebarMenu = ({ mobileOpen, onMobileClose }: Props) => {
           }}
           className={styles.logoutItem}
         >
-          <svg
-            className={styles.navIcon}
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M16 17L21 12M21 12L16 7M21 12H9M13 21H5C4.44772 21 4 20.5523 4 20V4C4 3.44772 4.44772 3 5 3H13"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <span className={styles.logoutIcon}>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M16 17L21 12M21 12L16 7M21 12H9M13 21H5C4.44772 21 4 20.5523 4 20V4C4 3.44772 4.44772 3 5 3H13"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
           <span className={styles.navItemText}>Log out</span>
         </button>
       </div>

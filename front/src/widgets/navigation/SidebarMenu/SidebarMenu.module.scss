@@ -16,9 +16,11 @@
   border-radius: 8px;
   transition: background 0.15s;
 }
+
 .logoutItem:hover {
   background: var(--mui-palette-action-hover);
 }
+
 .desktopRoot {
   flex-shrink: 0;
   width: 240px;
@@ -26,18 +28,15 @@
 }
 
 .desktopPaper {
-  height: 100vh;
+  height: 100dvh;
   position: sticky;
   top: 0;
-
   border-right: 1px solid var(--mui-palette-divider);
   border-radius: 0;
-
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   background: var(--mui-palette-background-paper);
 }
 
@@ -53,14 +52,21 @@
   height: 100%;
 }
 
+.logout {
+  margin-top: auto;
+}
+
+.logoutIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
 .header {
   padding: 0 12px 8px;
 }
 
-.headerLogoWrap {
-  padding-left: 13px;
-  padding-top: 12px;
-}
 .logo {
   width: 97px;
   height: 55px;

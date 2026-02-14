@@ -5,6 +5,7 @@ const cors = require("cors");
 const { connectDB } = require("./src/config/db");
 const authRoutes = require("./src/routes/authRoutes");
 const healthRoutes = require("./src/routes/healthRoutes");
+const chatsRoutes = require("./src/routes/chatRoutes");
 const usersRoutes = require("./src/routes/userRoutes");
 const postsRoutes = require("./src/routes/postRoutes");
 
@@ -26,6 +27,7 @@ app.use("/api", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/posts", postsRoutes);
+app.use("/api/chats", chatsRoutes);
 
 (async () => {
   await connectDB();

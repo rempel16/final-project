@@ -7,7 +7,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setToken(tokenStorage.get());
     setReady(true);
   }, []);
 

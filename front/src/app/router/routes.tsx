@@ -17,6 +17,8 @@ import { RouteFallback } from "./RouteFallback";
 
 import { NotFoundPage } from "@/pages/not-found/NotFoundPage";
 
+const NotificationsRoute = () => null;
+
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   { path: "/signup", element: <SignupPage /> },
@@ -32,6 +34,7 @@ export const router = createBrowserRouter([
       { path: "/profile/:userId", element: <ProfilePage /> },
       { path: "/profile/edit", element: <EditProfilePage /> },
       { path: "/messages", element: <MessagesPage /> },
+      { path: "/notifications", element: <NotificationsRoute /> },
       { path: "*", element: <NotFoundPage /> },
     ],
   },

@@ -97,7 +97,6 @@ export const EditProfilePage = () => {
     } catch {
       setError("Failed to load image");
     } finally {
-      // чтобы можно было выбрать тот же файл второй раз
       e.target.value = "";
     }
   };
@@ -226,7 +225,6 @@ export const EditProfilePage = () => {
         <Button
           variant="contained"
           onClick={() => {
-            // триггерим submit формы (надёжнее, чем дублировать логику)
             const form = document.querySelector("form");
             form?.requestSubmit();
           }}

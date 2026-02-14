@@ -17,11 +17,25 @@ import {
 } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 
+import { getMeId } from "@/shared/lib/me";
 import { messageApi, type Message, type Thread } from "@/shared/api/messageApi";
 import styles from "./MessagesPage.module.scss";
 
-const getErrorMessage = (err: unknown) =>
-  (err as { message?: string })?.message ?? "Something went wrong";
+type LocalMessage = Message & { _status?: "sending" | "failed" };
+
+const mergeUniqueById = (prev: LocalMessage[], next: Message[]) => {
+  const map = new Map<string, LocalMessage>();
+  for (const m of prev) map.set(m.id, m);
+
+  for (const m of next) {
+    const existing = map.get(m.id);
+    map.set(m.id, { ...(existing ?? {}), ...m, _status: existing?._status });
+  }
+
+  return Array.from(map.values()).sort(
+    (a, b) => +new Date(a.createdAt) - +new Date(b.createdAt),
+  );
+};
 
 export const MessagesPage = () => {
   const [searchParams] = useSearchParams();
@@ -30,13 +44,15 @@ export const MessagesPage = () => {
     [searchParams],
   );
 
+  const meId = useMemo(() => getMeId(), []);
+
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(true);
   const [threadsError, setThreadsError] = useState<string | null>(null);
 
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState<string | null>(null);
 
@@ -53,6 +69,29 @@ export const MessagesPage = () => {
       const data = await messageApi.getThreads();
       const next = Array.isArray(data) ? data : [];
       setThreads(next);
+
+      // пришли из профиля: /messages?userId=...
+      if (requestedUserId) {
+        const existing = next.find((t) => t.participant.id === requestedUserId);
+
+        if (existing) {
+          setSelectedThreadId(existing.id);
+          return;
+        }
+
+        // чата ещё нет → создаём
+        const created = await messageApi.getOrCreateThread(requestedUserId);
+
+        setThreads((prev) => {
+          const exists = prev.some((t) => t.id === created.id);
+          return exists ? prev : [created, ...prev];
+        });
+
+        setSelectedThreadId(created.id);
+        return;
+      }
+
+      // обычное поведение
       if (next.length > 0) {
         setSelectedThreadId((prev) => prev ?? next[0].id);
       } else {
@@ -74,7 +113,8 @@ export const MessagesPage = () => {
 
     try {
       const data = await messageApi.getMessages(threadId);
-      setMessages(Array.isArray(data) ? data : []);
+      const next = Array.isArray(data) ? data : [];
+      setMessages((prev) => mergeUniqueById(prev, next));
     } catch (err) {
       console.error("Failed to load messages:", err);
       setMessages([]);
@@ -86,7 +126,8 @@ export const MessagesPage = () => {
 
   useEffect(() => {
     void loadThreads();
-  }, []);
+    // важно: реагировать на изменение query (когда переходишь по Message на другого юзера)
+  }, [requestedUserId]);
 
   useEffect(() => {
     if (!selectedThreadId) {
@@ -113,17 +154,26 @@ export const MessagesPage = () => {
     if (!messageText.trim() || !selectedThreadId) return;
 
     setSendingMessage(true);
+
     try {
       const newMessage = await messageApi.sendMessage(selectedThreadId, {
         text: messageText.trim(),
       });
-      setMessages((prev) => [...prev, newMessage]);
+
+      setMessages((prev) => mergeUniqueById(prev, [newMessage]));
       setMessageText("");
       setMessagesError(null);
+      // поднимем чат вверх (косметика, но приятно)
+      setThreads((prev) => {
+        const idx = prev.findIndex((t) => t.id === selectedThreadId);
+        if (idx < 0) return prev;
+        const next = [...prev];
+        const [picked] = next.splice(idx, 1);
+        return [{ ...picked, lastMessage: newMessage.text }, ...next];
+      });
     } catch (err) {
       console.error("Failed to send message:", err);
       setMessagesError("Failed to send message.");
-      window.alert(getErrorMessage(err));
     } finally {
       setSendingMessage(false);
     }
@@ -174,7 +224,7 @@ export const MessagesPage = () => {
                 <ListItem>
                   <Typography color="text.secondary">
                     {requestedUserId
-                      ? "No conversations yet. (You came here from a profile, but there is no backend logic to create a new thread yet.)"
+                      ? "No conversations yet."
                       : "No messages yet"}
                   </Typography>
                 </ListItem>
@@ -237,19 +287,36 @@ export const MessagesPage = () => {
                   </div>
                 ) : (
                   <Stack spacing={1}>
-                    {messages.map((msg) => (
-                      <div key={msg.id} className={styles.messageRow}>
-                        <Paper className={styles.messageBubble}>
-                          <Typography variant="body2">{msg.text}</Typography>
-                          <Typography
-                            variant="caption"
-                            className={styles.messageTime}
+                    {messages.map((msg) => {
+                      const isMine = Boolean(meId) && msg.senderId === meId;
+
+                      return (
+                        <div
+                          key={msg.id}
+                          className={
+                            isMine
+                              ? styles.messageRowMine
+                              : styles.messageRowOther
+                          }
+                        >
+                          <Paper
+                            className={
+                              isMine
+                                ? styles.messageBubbleMine
+                                : styles.messageBubbleOther
+                            }
                           >
-                            {new Date(msg.createdAt).toLocaleTimeString()}
-                          </Typography>
-                        </Paper>
-                      </div>
-                    ))}
+                            <Typography variant="body2">{msg.text}</Typography>
+                            <Typography
+                              variant="caption"
+                              className={styles.messageTime}
+                            >
+                              {new Date(msg.createdAt).toLocaleTimeString()}
+                            </Typography>
+                          </Paper>
+                        </div>
+                      );
+                    })}
                     <div ref={messagesEndRef} />
                   </Stack>
                 )}
